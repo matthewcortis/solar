@@ -1,0 +1,31 @@
+{
+  "items": [
+    {
+      "image": "assets/images/product.png",
+      "statusText": "Đang hoạt động",
+      "productName": "Tấm quang năng JASolar 580W",
+      "activeDate": "19/03/2025",
+      "duration": "5 năm",
+      "endDate": "20/03/2025",
+      "progress": 0.25
+    },
+    {
+      "image": "assets/images/product.png",
+      "statusText": "Hết hạn",
+      "productName": "Biến tần Solis Hybrid | 1 pha | 5kW",
+      "activeDate": "19/03/2025",
+      "duration": "5 năm",
+      "endDate": "20/03/2025",
+      "progress": 1.0
+    },
+    {
+      "image": "assets/images/product.png",
+      "statusText": "Đang hoạt động",
+      "productName": "Biến tần Solis Hybrid | 1 pha | 5kW",
+      "activeDate": "19/03/2025",
+      "duration": "5 năm",
+      "endDate": "20/03/2025",
+      "progress": 0.5
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "customers": [
+    {
+      "name": "Nguyễn Văn A",
+      "avatar": "assets/images/avatar.jpg",
+      "giaTriHopDong": "12.650.000đ",
+      "ngayBanGiao": "12/03/2025",
+      "hoaHong": "1.200.000đ",
+      "trangThai": "Chưa hết hạn"
+    },
+    {
+      "name": "Nguyễn Văn B",
+      "avatar": "assets/images/avatar.jpg",
+      "giaTriHopDong": "8.300.000đ",
+      "ngayBanGiao": "05/06/2025",
+      "hoaHong": "950.000đ",
+      "trangThai": "Đã hết hạn"
+    },
+    {
+      "name": "Nguyễn Văn C",
+      "avatar": "assets/images/avatar.jpg",
+      "giaTriHopDong": "15.000.000đ",
+      "ngayBanGiao": "20/02/2025",
+      "hoaHong": "1.500.000đ",
+      "trangThai": "Chưa hết hạn"
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "category_name": "Tấm quang năng",
+      "category_icon": "assets/images/ja.png",
+      "category_des": "Các loại biến tần năng lượng mặt trời (Inverter) đa dạng, phù hợp với hệ thống On-grid, Off-grid và Hybrid.",
+      "products": [
+        {
+          "id": 1,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - JA Solar 60Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "2.150.000 đ",
+          "power": "600Wp",
+          "technology": "N-Type",
+          "quantityTag": "8 thiết bị"
+        },
+        {
+          "id": 2,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - SolarMax 550Wp",
+          "warranty": "Bảo hành 10 năm vật lý, 25 năm hiệu suất",
+          "price": "1.980.000 đ",
+          "power": "550Wp",
+          "technology": "PERC Mono",
+          "quantityTag": "5 thiết bị"
+        },
+        {
+          "id": 3,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - Eliton 450Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "1.790.000 đ",
+          "power": "450Wp",
+          "technology": "TOPCon",
+          "quantityTag": "6 thiết bị"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "category_name": "Biến tần",
+      "category_icon": "assets/images/soliss.png",
+      "category_des": "Các loại tấm pin mặt trời hiệu suất cao, từ Mono đến Poly, đảm bảo chất lượng và tuổi thọ.",
+      "products": [
+        {
+          "id": 1,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - JA Solar 60Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "2.150.000 đ",
+          "power": "600Wp",
+          "technology": "N-Type",
+          "quantityTag": "8 thiết bị"
+        },
+        {
+          "id": 2,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - SolarMax 550Wp",
+          "warranty": "Bảo hành 10 năm vật lý, 25 năm hiệu suất",
+          "price": "1.980.000 đ",
+          "power": "550Wp",
+          "technology": "PERC Mono",
+          "quantityTag": "5 thiết bị"
+        },
+        {
+          "id": 3,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - Eliton 450Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "1.790.000 đ",
+          "power": "450Wp",
+          "technology": "TOPCon",
+          "quantityTag": "6 thiết bị"
+        }
+      ]
+    }, {
+      "id": 3,
+      "category_name": "Pin Lithium",
+      "category_icon": "assets/images/dyness.png",
+      "category_des": "Các loại tấm pin mặt trời hiệu suất cao, từ Mono đến Poly, đảm bảo chất lượng và tuổi thọ.",
+      "products": [
+         {
+          "id": 1,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - JA Solar 60Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "2.150.000 đ",
+          "power": "600Wp",
+          "technology": "N-Type",
+          "quantityTag": "8 thiết bị"
+        },
+        {
+          "id": 2,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - SolarMax 550Wp",
+          "warranty": "Bảo hành 10 năm vật lý, 25 năm hiệu suất",
+          "price": "1.980.000 đ",
+          "power": "550Wp",
+          "technology": "PERC Mono",
+          "quantityTag": "5 thiết bị"
+        },
+        {
+          "id": 3,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - Eliton 450Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "1.790.000 đ",
+          "power": "450Wp",
+          "technology": "TOPCon",
+          "quantityTag": "6 thiết bị"
+        }
+      ]
+    }
+  ]
+}

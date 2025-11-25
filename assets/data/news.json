@@ -1,0 +1,102 @@
+{
+  "news": [
+    {
+      "id": 1,
+      "tag": "Hy - Brid",
+      "title": "Điện mặt trời SoLarMax | Em biết không? | Phần 4 | DA296 - Hải Dương",
+      "time": "5 giờ trước",
+      "image": "assets/images/product.png"
+    },
+    {
+      "id": 2,
+      "tag": "On - Grid",
+      "title": "Hệ thống điện mặt trời OnGrid 15kWp - Dự án Bình Dương",
+      "time": "2 ngày trước",
+      "image": "assets/images/product.png"
+    },
+    {
+      "id": 3,
+      "tag": "Off - Grid",
+      "title": "Giải pháp năng lượng độc lập cho vùng sâu vùng xa | Dự án Kon Tum",
+      "time": "1 tuần trước",
+      "image": "assets/images/product.png"
+    }
+  ],
+    "faqs": [
+    {
+      "title": "Lý do lựa chọn tấm Quang Năng.",
+      "content": "Tấm quang năng được chọn vì tiết kiệm điện, bền bỉ và thân thiện với môi trường."
+    },
+    {
+      "title": "Chỉ số IP là gì?",
+      "content": "Chỉ số IP thể hiện khả năng chống bụi và chống nước của thiết bị điện."
+    },
+    {
+      "title": "Combo 70 triệu cho hệ Off-Grid/off-grid?",
+      "content": "Combo bao gồm inverter, pin lưu trữ và tấm pin đủ cho hộ gia đình 3–4 người."
+    },
+    {
+      "title": "10 năm không cần bảo dưỡng điện NLMT?",
+      "content": "Tấm pin mặt trời có tuổi thọ cao và yêu cầu bảo dưỡng tối thiểu, chỉ cần vệ sinh định kỳ."
+    },
+    {
+      "title": "Mặt bằng thuê có nên lắp hệ điện mặt trời?",
+      "content": "Có thể, miễn là có sự đồng ý từ chủ nhà và hợp đồng thuê dài hạn để đảm bảo hiệu quả đầu tư."
+    }
+  ],
+  "tutorial": [
+    {
+      "id": 1,
+      "tag": "Hy - Brid",
+      "title": "Điện mặt trời SoLarMax | Em biết không? | Phần 4 | DA296 - Hải Dương",
+      "time": "5 giờ trước",
+      "image": "assets/images/product.png"
+    },
+    {
+      "id": 2,
+      "tag": "On - Grid",
+      "title": "Hệ thống điện mặt trời OnGrid 15kWp - Dự án Bình Dương",
+      "time": "2 ngày trước",
+      "image": "assets/images/product.png"
+    },
+    {
+      "id": 3,
+      "tag": "Off - Grid",
+      "title": "Giải pháp năng lượng độc lập cho vùng sâu vùng xa | Dự án Kon Tum",
+      "time": "1 tuần trước",
+      "image": "assets/images/product.png"
+    }
+  ],
+  "products": [
+        {
+          "id": 1,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - JA Solar 60Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "2.150.000 đ",
+          "power": "600Wp",
+          "technology": "N-Type",
+          "quantityTag": "8 thiết bị"
+        },
+        {
+          "id": 2,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - SolarMax 550Wp",
+          "warranty": "Bảo hành 10 năm vật lý, 25 năm hiệu suất",
+          "price": "1.980.000 đ",
+          "power": "550Wp",
+          "technology": "PERC Mono",
+          "quantityTag": "5 thiết bị"
+        },
+        {
+          "id": 3,
+          "image": "assets/images/product.png",
+          "title": "Tấm quang năng - Eliton 450Wp",
+          "warranty": "Bảo hành 12 năm vật lý, 30 năm hiệu suất",
+          "price": "1.790.000 đ",
+          "power": "450Wp",
+          "technology": "TOPCon",
+          "quantityTag": "6 thiết bị"
+        }
+      ]
+}

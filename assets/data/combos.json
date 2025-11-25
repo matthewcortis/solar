@@ -1,0 +1,91 @@
+{
+  "combos": [
+    {
+      "id": 1,
+      "icon": "assets/icons/file-validation.svg",
+      "text": "JAsolar, SoLis, Dyness",
+      "products": [
+        {
+          "id": 1,
+          "name": "Hệ Hybrid 5kWp 1 pha - Lưu trữ 5.12kWh Cao Cấp",
+          "price": "49.900.000đ",
+          "type": "Hy-Brid",
+          "phase": "1",
+          "saving": "Tiết kiệm/tháng 5.000.000đ",
+          "image": "assets/images/product.png"
+        },
+        {
+          "id": 2,
+          "name": "Hệ On-grid 3kWp 1 pha - Dành cho hộ gia đình",
+          "price": "33.500.000đ",
+          "type": "On-grid",
+          "phase": "1",
+          "saving": "Tiết kiệm/tháng 3.000.000đ",
+          "image": "assets/images/product.png"
+        },
+        {
+          "id": 3,
+          "name": "Hệ Hybrid 10kWp 3 pha - Lưu trữ 10.24kWh",
+          "price": "95.000.000đ",
+          "type": "Hy-Brid",
+          "phase": "3",
+          "saving": "Tiết kiệm/tháng 10.000.000đ",
+          "image": "assets/images/product.png"
+        },
+        {
+          "id": 4,
+          "name": "Hệ On-grid 5kWp 3 pha - Công suất cao cho doanh nghiệp nhỏ",
+          "price": "58.000.000đ",
+          "type": "On-grid",
+          "phase": "3",
+          "saving": "Tiết kiệm/tháng 6.000.000đ",
+          "image": "assets/images/product.png"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "icon": "assets/icons/file-validation.svg",
+      "text": "JAsolar, SoLis, Dyness",
+      "products": [
+        {
+          "id": 1,
+          "name": "Hệ Hybrid 5kWp 1 pha - Lưu trữ 5.12kWh Cao Cấp",
+          "price": "49.900.000đ",
+          "type": "Hy-Brid",
+          "phase": "1",
+          "saving": "Tiết kiệm/tháng 5.000.000đ",
+          "image": "assets/images/product.png"
+        },
+        {
+          "id": 2,
+          "name": "Hệ On-grid 3kWp 1 pha - Dành cho hộ gia đình",
+          "price": "33.500.000đ",
+          "type": "On-grid",
+          "phase": "1",
+          "saving": "Tiết kiệm/tháng 3.000.000đ",
+          "image": "assets/images/product.png"
+        },
+         {
+          "id": 3,
+          "name": "Hệ On-grid 3kWp 3 pha - Dành cho hộ gia đình",
+          "price": "33.500.000đ",
+          "type": "On-grid",
+          "phase": "3",
+          "saving": "Tiết kiệm/tháng 3.000.000đ",
+          "image": "assets/images/product.png"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "icon": "assets/icons/file-validation.svg",
+      "text": "JAsolar, SoLis, Dyness"
+    },
+    {
+      "id": 4,
+      "icon": "assets/icons/file-validation.svg",
+      "text": "JAsolar, SoLis, Dyness"
+    }
+  ]
+}

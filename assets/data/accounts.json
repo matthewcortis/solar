@@ -1,0 +1,28 @@
+{
+    "accounts": [
+        {
+            "userid": "u01",
+            "taikhoan": "admin",
+            "matkhau": "admin",
+            "role": "admin"
+        },
+        {
+            "userid": "u02",
+            "taikhoan": "daily",
+            "matkhau": "daily",
+            "role": "staff"
+        },
+        {
+            "userid": "u03",
+            "taikhoan": "khachhang",
+            "matkhau": "khachhang",
+            "role": "customer"
+        },
+        {
+            "userid": "u04",
+            "taikhoan": "khachhang1",
+            "matkhau": "khachhang",
+            "role": "customer"
+        }
+    ]
+}
