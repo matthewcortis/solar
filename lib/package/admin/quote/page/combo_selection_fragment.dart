@@ -4,8 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/equipment/card_item_product_hy_on.dart';
 
 import '../../../combo/repository/nhom_tron_goi_repo.dart';
-import '../../../combo/model/nhom_tron_goi_model.dart';
-import '../../../combo/model/tron_goi_model.dart';
+import '../../../model/tron_goi_models.dart';
 import '../../../combo/repository/tron_goi_repo.dart';
 
 typedef OnComboSelectionChanged =
@@ -22,9 +21,9 @@ class ComboSelectionFragment extends StatefulWidget {
 
 class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
   final _repo = NhomTronGoiRepository();
-  late Future<List<NhomTronGoiModel>> _futureCombos;
+  late Future<List<NhomTronGoiDto>> _futureCombos;
  
-  NhomTronGoiModel? selectedCombo;
+  NhomTronGoiDto? selectedCombo;
 
   @override
   void initState() {
@@ -36,7 +35,7 @@ class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
     });
   }
 
-  void _toggleSelect(NhomTronGoiModel combo) {
+  void _toggleSelect(NhomTronGoiDto combo) {
     setState(() {
       if (selectedCombo?.id == combo.id) {
         selectedCombo = null; // đang chọn -> bỏ chọn
@@ -95,7 +94,7 @@ class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
 
         // PHẦN GRIDVIEW GIỮ NGUYÊN GIAO DIỆN, CHỈ THAY DATA
         Expanded(
-          child: FutureBuilder<List<NhomTronGoiModel>>(
+          child: FutureBuilder<List<NhomTronGoiDto>>(
             future: _futureCombos,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -312,7 +311,7 @@ class ProductListScreen extends StatefulWidget {
 
   final bool? initialIsHybrid;
   final void Function(String type, bool hasAny)? onTypeSelected;
-  final void Function(TronGoiModel? product)? onProductSelected;
+  final void Function(TronGoiDto? product)? onProductSelected;
 
   const ProductListScreen({
     super.key,
@@ -334,8 +333,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   final _repo = TronGoiRepository();
 
-  List<TronGoiModel> _hybridList = [];
-  List<TronGoiModel> _onGridList = [];
+  List<TronGoiDto> _hybridList = [];
+  List<TronGoiDto> _onGridList = [];
 
   bool _isLoading = true;
   String? _error;
@@ -468,7 +467,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     }
                                   });
 
-                                  TronGoiModel? selectedProduct;
+                                  TronGoiDto? selectedProduct;
                                   if (selectedIndex != null) {
                                     selectedProduct = list[selectedIndex!];
                                   } else {
@@ -502,7 +501,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (isHybridSelected != isHybrid) {
             setState(() {
               isHybridSelected = isHybrid;
-              selectedIndex = null; // đổi loại thì bỏ chọn product cũ
+              selectedIndex = null; 
             });
             _notifyType();
             widget.onProductSelected?.call(null);

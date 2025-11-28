@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../repository/chi_tiet_vat_tu_repo.dart';
-import '../model/device_detail_model.dart';
-
+import '../../model/tron_goi_models.dart';
+import '../../model/extension.dart';
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
 
@@ -15,11 +15,11 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final _repo = ProductRepository();
-  ProductDetailModel? _product;
+  VatTuDto? _product;
   bool _isLoading = true;
   String? _error;
 
-  bool _didInit = false; // flag để chỉ load 1 lần
+  bool _didInit = false; // chỉ load 1 lần
 
   @override
   void didChangeDependencies() {
@@ -72,12 +72,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+  /// Lấy link datasheet từ duLieuRieng (tuỳ key backend)
+  String? _getSheetLink(VatTuDto p) {
+    // Điều chỉnh key cho đúng với backend, ví dụ: 'datasheet', 'sheet_link', ...
+    final ds1 = p.duLieuRieng['datasheet'];
+    if (ds1 != null && ds1.giaTri != null && ds1.giaTri.toString().isNotEmpty) {
+      return ds1.giaTri.toString();
+    }
+    final ds2 = p.duLieuRieng['sheetLink'];
+    if (ds2 != null && ds2.giaTri != null && ds2.giaTri.toString().isNotEmpty) {
+      return ds2.giaTri.toString();
+    }
+    return null;
+  }
+
   Future<void> _openSheetLink() async {
-    final url = _product?.sheetLink;
+    final p = _product;
+    if (p == null) return;
+
+    final url = _getSheetLink(p);
     if (url == null || url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Không có link datasheet")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Không có link datasheet")));
       return;
     }
 
@@ -93,19 +110,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   String _formatPrice(double? price) {
-    if (price == null) return '0 đ';
+    if (price == null) return 'Liên hệ';
     final formatter = NumberFormat("#,##0", "vi_VN");
     return "${formatter.format(price)} đ";
   }
 
-  List<SpecItem> _buildSpecs(ProductDetailModel p) {
+  GiaInfo? _getGiaInfo(VatTuDto p) {
+    if (p.thongTinGias.isEmpty) return null;
+
+    final group = p.thongTinGias.first; // Thông tin giá đầu tiên
+    if (group.dsGia.isEmpty) return null;
+
+    // Bạn có thể chọn cơ sở mặc định ở đây, ví dụ cơ sở đầu tiên:
+    return group.dsGia.first;
+  }
+
+  /// Lấy thuộc tính từ duLieuRieng, có thể thêm suffix đơn vị
+  String _getAttr(VatTuDto p, String key, {String? suffix}) {
+    final item = p.duLieuRieng[key];
+    if (item == null || item.giaTri == null) return 'Đang cập nhật';
+    final value = item.giaTri.toString();
+    // Nếu backend đã lưu đơn vị trong item.donVi thì có thể dùng luôn:
+    if (item.donVi.isNotEmpty) {
+      return '$value ${item.donVi}';
+    }
+    if (suffix != null && suffix.isNotEmpty) {
+      return '$value $suffix';
+    }
+    return value;
+  }
+
+  List<SpecItem> _buildSpecs(VatTuDto p) {
     return [
-      SpecItem("1. Công nghệ:", p.tech),
-      SpecItem("2. Thương hiệu:", p.brandName),
-      SpecItem("3. Công suất:", "${p.power} Wp"),
-      SpecItem("4. Khối lượng:", "${p.weight} kg"),
-      SpecItem("5. Kích thước:", p.size),
-      SpecItem("6. Hiệu suất chuyển đổi:", "${p.efficiency} %"),
+      // Các key 'congNghe', 'congSuat', 'khoiLuong', 'kichThuoc', 'hieuSuat'
+      // cần trùng với backend của bạn.
+      SpecItem("1. Công nghệ:", _getAttr(p, 'congNghe')),
+      SpecItem("2. Thương hiệu:", p.thuongHieu.tenQuocTe),
+      SpecItem("3. Công suất:", _getAttr(p, 'congSuat', suffix: 'Wp')),
+      SpecItem("4. Khối lượng:", _getAttr(p, 'khoiLuong', suffix: 'kg')),
+      SpecItem("5. Kích thước:", _getAttr(p, 'kichThuoc')),
+      SpecItem(
+        "6. Hiệu suất chuyển đổi:",
+        _getAttr(p, 'hieuSuat', suffix: '%'),
+      ),
       SpecItem("7. Bảo hành:", "12 năm vật lý, 25 năm hiệu suất"),
     ];
   }
@@ -132,6 +179,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final product = _product!;
     final specs = _buildSpecs(product);
 
+    // Ảnh chính
+    String? imageUrl;
+    if (product.anhVatTus.isNotEmpty) {
+      final main = product.anhVatTus.firstWhere(
+        (e) => e.anhChinh,
+        orElse: () => product.anhVatTus.first,
+      );
+      imageUrl = main.tepTin.duongDan;
+    }
+
+    final giaInfo = _getGiaInfo(product);
+
+    final priceText = giaInfo?.giaBan != null
+        ? _formatPrice(giaInfo!.giaBan)
+        : "Liên hệ";
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       body: CustomScrollView(
@@ -146,10 +209,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               background: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.asset(
-                      'assets/images/product.png',
-                      fit: BoxFit.cover,
-                    ),
+                    child: imageUrl != null && imageUrl.isNotEmpty
+                        ? Image.network(imageUrl, fit: BoxFit.cover)
+                        : Image.asset(
+                            'assets/images/product.png',
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   Positioned(
                     top: scale(34),
@@ -194,7 +259,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
-                            '1/13 ảnh',
+                            // Nếu sau này có nhiều ảnh, bạn có thể thay bằng "${index+1}/${total} ảnh"
+                            '1/1 ảnh',
                             style: TextStyle(
                               fontFamily: 'SFProDisplay',
                               fontSize: scale(13),
@@ -221,7 +287,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Thông số kỹ thuật ${product.name}',
+                    product.ten,
                     style: TextStyle(
                       fontFamily: 'SFProDisplay',
                       fontWeight: FontWeight.w600,
@@ -231,7 +297,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                   SizedBox(height: scale(8)),
                   Text(
-                    _formatPrice(product.price),
+                    priceText,
                     style: TextStyle(
                       fontFamily: 'SFProDisplay',
                       fontWeight: FontWeight.w700,
@@ -287,7 +353,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           color: Color(0x26D1D1D1),
                           blurRadius: 34,
                           offset: Offset(0, 15),
-                        )
+                        ),
                       ],
                     ),
                     child: Center(
@@ -309,9 +375,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
 
           // ---------- THÔNG TIN CHI TIẾT ----------
-          SliverToBoxAdapter(
-            child: ProductSpecsSection(specs: specs),
-          ),
+          SliverToBoxAdapter(child: ProductSpecsSection(specs: specs)),
         ],
       ),
     );

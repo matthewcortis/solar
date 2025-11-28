@@ -8,6 +8,12 @@ class AuthStorage {
   static const _kBankName = 'bank_name';
   static const _kBankAccount = 'bank_account';
 
+  // NEW: thêm key về khu vực – theo dữ liệu login
+  static const _kBranchId = 'branch_id';                // coSo.id
+  static const _kBranchCode = 'branch_code';            // coSo.ma (HN/HCM)
+  static const _kOfficeAddress = 'office_address';      // dcVanPhong
+  static const _kWarehouseAddress = 'warehouse_address';// dcKho
+
   /// LƯU TOÀN BỘ THÔNG TIN USER ĐĂNG NHẬP
   static Future<void> save({
     required String role,
@@ -15,6 +21,12 @@ class AuthStorage {
     required String fullName,
     required String bankName,
     required String bankAccount,
+
+    // NEW: thêm các tham số để lưu khu vực
+    String? branchId,
+    String? branchCode,
+    String? officeAddress,
+    String? warehouseAddress,
   }) async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_kRole, role);
@@ -22,6 +34,20 @@ class AuthStorage {
     await p.setString(_kFullName, fullName);
     await p.setString(_kBankName, bankName);
     await p.setString(_kBankAccount, bankAccount);
+
+    // NEW: lưu thêm khu vực vào bộ nhớ
+    if (branchId != null) {
+      await p.setString(_kBranchId, branchId);
+    }
+    if (branchCode != null) {
+      await p.setString(_kBranchCode, branchCode);
+    }
+    if (officeAddress != null) {
+      await p.setString(_kOfficeAddress, officeAddress);
+    }
+    if (warehouseAddress != null) {
+      await p.setString(_kWarehouseAddress, warehouseAddress);
+    }
   }
 
   /// GETTERS
@@ -50,6 +76,38 @@ class AuthStorage {
     return p.getString(_kBankAccount);
   }
 
+  // --- NEW GETTERS cho khu vực (HN/HCM) ---
+  static Future<String?> getBranchId() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_kBranchId);
+  }
+
+  static Future<String?> getBranchCode() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_kBranchCode);
+  }
+
+  static Future<String?> getOfficeAddress() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_kOfficeAddress);
+  }
+
+  static Future<String?> getWarehouseAddress() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_kWarehouseAddress);
+  }
+
+  // NEW: Helper check nhanh user thuộc HN hay HCM
+  static Future<bool> isHN() async {
+    final code = await getBranchCode();
+    return code == 'HN';
+  }
+
+  static Future<bool> isHCM() async {
+    final code = await getBranchCode();
+    return code == 'HCM';
+  }
+
   /// CLEAR ALL
   static Future<void> clear() async {
     final p = await SharedPreferences.getInstance();
@@ -59,5 +117,11 @@ class AuthStorage {
     await p.remove(_kFullName);
     await p.remove(_kBankName);
     await p.remove(_kBankAccount);
+
+    // NEW: clear luôn dữ liệu khu vực
+    await p.remove(_kBranchId);
+    await p.remove(_kBranchCode);
+    await p.remove(_kOfficeAddress);
+    await p.remove(_kWarehouseAddress);
   }
 }

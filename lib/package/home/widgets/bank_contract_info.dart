@@ -35,6 +35,7 @@ class BankContractCard extends StatefulWidget {
 class _BankContractCardState extends State<BankContractCard>
     with TickerProviderStateMixin {
   bool _isExpanded = false;
+  bool isHidden = false;
   final repo = KhachHangRepository();
   @override
   Widget build(BuildContext context) {
@@ -241,7 +242,7 @@ class _BankContractCardState extends State<BankContractCard>
                     Row(
                       children: [
                         Text(
-                          widget.totalContractValue, // "12.650.000" dynamic
+                          isHidden ? "******" : widget.totalContractValue,
                           style: TextStyle(
                             fontFamily: 'SF Pro',
                             fontWeight: FontWeight.w600,
@@ -251,10 +252,19 @@ class _BankContractCardState extends State<BankContractCard>
                           ),
                         ),
                         SizedBox(width: scale(6)),
-                        Icon(
-                          Icons.visibility_outlined,
-                          size: scale(20),
-                          color: Colors.black.withOpacity(0.6),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isHidden = !isHidden;
+                            });
+                          },
+                          child: Icon(
+                            isHidden
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: scale(20),
+                            color: Colors.black.withOpacity(0.6),
+                          ),
                         ),
                       ],
                     ),

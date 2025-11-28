@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/quote/step_progress.dart';
 import './combo_selection_fragment.dart';
 import './equipment_selection_fragment.dart'; // chứa DanhMucScreen
-import '../../../combo/model/tron_goi_model.dart';
+import '../../../model/tron_goi_models.dart';
 
 class TaoBaoGiaScreen extends StatefulWidget {
   const TaoBaoGiaScreen({super.key});
@@ -22,11 +22,13 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
   bool _hasType = false; // có sản phẩm thuộc loại đang chọn
   bool _hasProductSelection = false;
 
-  TronGoiModel? _selectedProduct;
+  TronGoiDto? _selectedProduct;
+  num _currentTotal = 0;
+
+ 
 
   String get _totalDisplay {
-    final num value = _selectedProduct?.tongGia ?? 0;
-    // đơn giản: 1.000.000 đ
+    final num value = _currentTotal;
     final s = value.toStringAsFixed(0);
     final buffer = StringBuffer();
     int count = 0;
@@ -66,14 +68,25 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
       _hasProductSelection = false;
     });
   }
+    // callback nhận tổng tiền mới từ DanhMucScreen
+  void _onTotalChanged(num newTotal) {
+    setState(() {
+      _currentTotal = newTotal;
+    });
+  }
+
 
   // nhận từ ProductListScreen khi chọn combo cụ thể
-  void _onProductSelected(TronGoiModel? product) {
+    void _onProductSelected(TronGoiDto? product) {
     setState(() {
       _selectedProduct = product;
       _hasProductSelection = product != null;
+
+      // GÁN TỔNG BAN ĐẦU TỪ TỔNG GIÁ CỦA TRỌN GÓI
+      _currentTotal = product?.tongGia ?? 0;
     });
   }
+
 
   void _goNext() {
     switch (_step) {
@@ -323,12 +336,15 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
       );
     }
 
-    return DanhMucScreen(
+        return DanhMucScreen(
       selectedType: _selectedType,
       selectedPhase: _selectedProduct?.loaiHeThong,
       tronGoi: _selectedProduct!,
       comboId: _selectedProduct!.id,
+      // THÊM CALLBACK
+      onTotalChanged: _onTotalChanged,
     );
+
   }
 }
 

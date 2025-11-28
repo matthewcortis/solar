@@ -82,7 +82,7 @@ class DeviceWidgetSection extends StatelessWidget {
           SizedBox(height: scale(24)),
 
           SizedBox(
-            height: scale(401),
+            height: scale(520),
             child: ListView.separated(
               clipBehavior: Clip.none,
               scrollDirection: Axis.horizontal,

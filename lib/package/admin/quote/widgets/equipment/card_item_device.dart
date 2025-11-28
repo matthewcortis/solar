@@ -2,24 +2,36 @@ import 'package:flutter/material.dart';
 import '../quantity_control.dart';
 
 class SolarMaxCartCard extends StatelessWidget {
-  final ImageProvider image; // ĐỔI TỪ NetworkImage -> ImageProvider
+  /// Nhận đường dẫn ảnh (có thể là URL http hoặc asset path).
+  /// Nếu null hoặc rỗng sẽ dùng ảnh fallback.
+  final String? imageUrl;
+
   final String title;
   final String modeTag; // "Hy-Brid"
   final String congSuat;
   final String chiSoIp;
   final String khoiLuong;
   final String baoHanh;
-  final String priceText; // "9.999.999đ"
+  final String priceText; // Ví dụ: "9.999.999đ"
+
+  /// Số lượng hiện tại
   final int quantity;
+
+  /// Callback bấm nút +
   final VoidCallback? onIncrease;
+
+  /// Callback bấm nút -
   final VoidCallback? onDecrease;
 
-  final bool showQuantityControl; // có hiện tăng/giảm hay không
-  final Color? backgroundColor; // màu nền card
+  /// Có hiển thị cụm tăng/giảm không
+  final bool showQuantityControl;
+
+  /// Màu nền card
+  final Color? backgroundColor;
 
   const SolarMaxCartCard({
     super.key,
-    required this.image,
+    required this.imageUrl,
     required this.title,
     required this.modeTag,
     required this.congSuat,
@@ -80,7 +92,10 @@ class SolarMaxCartCard extends StatelessWidget {
           height: scale(144),
           child: Row(
             children: [
-              _GradientBorderImage(imageProvider: image, size: scale(100)),
+              _GradientBorderImage(
+                imageUrl: imageUrl,
+                size: scale(100),
+              ),
               SizedBox(width: scale(12)), // gap: 12
               Expanded(
                 child: _RightContent(
@@ -108,10 +123,37 @@ class SolarMaxCartCard extends StatelessWidget {
 
 /// Ảnh 100×100, viền gradient 1px, bo 12, bóng mờ 0 0 12
 class _GradientBorderImage extends StatelessWidget {
-  const _GradientBorderImage({required this.imageProvider, required this.size});
+  const _GradientBorderImage({
+    required this.imageUrl,
+    required this.size,
+  });
 
-  final ImageProvider imageProvider;
+  final String? imageUrl;
   final double size;
+
+  Widget _buildImage() {
+    // Không có ảnh -> dùng fallback asset
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return Image.asset(
+        'assets/images/product.png',
+        fit: BoxFit.cover,
+      );
+    }
+
+    // Nếu là http/https -> Image.network
+    if (imageUrl!.startsWith('http')) {
+      return Image.network(
+        imageUrl!,
+        fit: BoxFit.cover,
+      );
+    }
+
+    // Còn lại coi như asset path
+    return Image.asset(
+      imageUrl!,
+      fit: BoxFit.cover,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,14 +177,13 @@ class _GradientBorderImage extends StatelessWidget {
           padding: const EdgeInsets.all(1), // border-width: 1
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image(image: imageProvider, fit: BoxFit.cover),
+            child: _buildImage(),
           ),
         ),
       ),
     );
   }
 }
-
 
 class _RightContent extends StatelessWidget {
   final String title;
@@ -157,6 +198,7 @@ class _RightContent extends StatelessWidget {
   final VoidCallback? onDecrease;
   final double Function(double v) scale;
   final bool showQuantityControl;
+
   const _RightContent({
     required this.title,
     required this.modeTag,
@@ -240,7 +282,6 @@ class _RightContent extends StatelessWidget {
           ),
 
           // frame: giá + nút tăng/giảm
-          // frame: giá + nút tăng/giảm
           SizedBox(
             height: scale(28),
             width: scale(254),
@@ -255,7 +296,6 @@ class _RightContent extends StatelessWidget {
                     color: const Color(0xFFFF3B30),
                   ),
                 ),
-                 // chỉ hiển thị nếu showQuantityControl = true
                 if (showQuantityControl)
                   QuantityControl(
                     quantity: quantity,

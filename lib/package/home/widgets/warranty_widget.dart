@@ -186,7 +186,7 @@ class _WarrantyWidgetState extends State<WarrantyWidget> {
                       activeDate: activeDateStr, // String
                       duration: durationStr, // String
                       endDate: endDateStr, // String
-                      progress: item.progress,
+                 
                     );
                   },
                 ),

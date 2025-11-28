@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 import './package/controllers/login/login_controller.dart';
 import './package/admin/quote/page/quote_screen.dart';
 import './package/product/page/bao_gia_screen.dart';
-
+import './package/profile/page/infomation_detail.dart';
 class AppRoutes {
   static final String splashScreen = '/splash-screen';
   static final String welcomeScreen = '/welcome-screen';
@@ -30,6 +30,7 @@ class AppRoutes {
   static final String adminBottomNav = '/admin-bottom-nav';
   static final String quoteScreen = '/quote';
   static final String baoGiaScreen = '/thong-tin-bao-gia';
+  static final String infomation_detail = '/chi-tiet-ca-nhan';
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       splashScreen: (context) => const SplashScreen(),
@@ -47,6 +48,10 @@ class AppRoutes {
       detailProduct: (context) => const DetailProduct(),
       warrantyDeviceScreen: (context) => const WarrantyDeviceScreen(),
       baoGiaScreen: (context) => ThongTinBaoGiaScreen(),
+      infomation_detail: (context) => PersonalInfoScreen(),
+      
+      
+      
 
       //admin
       quoteScreen: (context) => const TaoBaoGiaScreen(),

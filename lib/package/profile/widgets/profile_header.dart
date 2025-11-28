@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solarmaxapp/routes.dart';
+import '../../profile/page/infomation_detail.dart';
 
 class ProfileHeader extends StatelessWidget {
   final String avatarUrl;
@@ -139,79 +140,83 @@ class ProfileSettingsTopSection extends StatelessWidget {
       Color? textColor,
       Color? bgColor,
       bool isDanger = false,
+      VoidCallback? onTap,
     }) {
-      return Container(
-        width: scale(402),
-        height: scale(64),
-        padding: EdgeInsets.symmetric(
-          horizontal: scale(16),
-          vertical: scale(18),
-        ),
-        decoration: BoxDecoration(
-          color: bgColor ?? Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x26D1D1D1),
-              blurRadius: 34,
-              offset: Offset(0, 15),
-            ),
-            BoxShadow(
-              color: Color(0x21D1D1D1),
-              blurRadius: 61,
-              offset: Offset(0, 61),
-            ),
-            BoxShadow(
-              color: Color(0x14D1D1D1),
-              blurRadius: 82,
-              offset: Offset(0, 137),
-            ),
-            BoxShadow(
-              color: Color(0x0DD1D1D1),
-              blurRadius: 98,
-              offset: Offset(0, 244),
-            ),
-            BoxShadow(
-              color: Color(0x00D1D1D1),
-              blurRadius: 107,
-              offset: Offset(0, 382),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                SvgPicture.asset(
-                  svgPath,
-                  width: scale(24),
-                  height: scale(24),
-                  colorFilter: ColorFilter.mode(
-                    iconColor ?? const Color(0xFF4F4F4F),
-                    BlendMode.srcIn,
-                  ),
-                ),
-                SizedBox(width: scale(12)),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: 'SFProDisplay',
-                    fontWeight: FontWeight.w500,
-                    fontSize: scale(16),
-                    height: 24 / 16,
-                    color: textColor ?? const Color(0xFF4F4F4F),
-                  ),
-                ),
-              ],
-            ),
-            if (!isDanger)
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: scale(18),
-                color: const Color(0xFFBDBDBD),
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: scale(402),
+          height: scale(64),
+          padding: EdgeInsets.symmetric(
+            horizontal: scale(16),
+            vertical: scale(18),
+          ),
+          decoration: BoxDecoration(
+            color: bgColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x26D1D1D1),
+                blurRadius: 34,
+                offset: Offset(0, 15),
               ),
-          ],
+              BoxShadow(
+                color: Color(0x21D1D1D1),
+                blurRadius: 61,
+                offset: Offset(0, 61),
+              ),
+              BoxShadow(
+                color: Color(0x14D1D1D1),
+                blurRadius: 82,
+                offset: Offset(0, 137),
+              ),
+              BoxShadow(
+                color: Color(0x0DD1D1D1),
+                blurRadius: 98,
+                offset: Offset(0, 244),
+              ),
+              BoxShadow(
+                color: Color(0x00D1D1D1),
+                blurRadius: 107,
+                offset: Offset(0, 382),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    svgPath,
+                    width: scale(24),
+                    height: scale(24),
+                    colorFilter: ColorFilter.mode(
+                      iconColor ?? const Color(0xFF4F4F4F),
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  SizedBox(width: scale(12)),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'SFProDisplay',
+                      fontWeight: FontWeight.w500,
+                      fontSize: scale(16),
+                      height: 24 / 16,
+                      color: textColor ?? const Color(0xFF4F4F4F),
+                    ),
+                  ),
+                ],
+              ),
+              if (!isDanger)
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: scale(18),
+                  color: const Color(0xFFBDBDBD),
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -242,16 +247,16 @@ class ProfileSettingsTopSection extends StatelessWidget {
         children: [
           SizedBox(height: scale(32)),
 
-          // --- Nút yêu cầu mật khẩu ---
-          buildButton(
-            label: 'Yêu cầu mật khẩu',
-            svgPath: 'assets/icons/square-password.svg',
-            iconColor: const Color(0xFFEE4037),
-            textColor: const Color(0xFFEE4037),
-            bgColor: Colors.white,
-          ),
+          // // --- Nút yêu cầu mật khẩu ---
+          // buildButton(
+          //   label: 'Yêu cầu mật khẩu',
+          //   svgPath: 'assets/icons/square-password.svg',
+          //   iconColor: const Color(0xFFEE4037),
+          //   textColor: const Color(0xFFEE4037),
+          //   bgColor: Colors.white,
+          // ),
 
-          SizedBox(height: scale(18)),
+          // SizedBox(height: scale(18)),
 
           // --- Nhóm Tài khoản ---
           buildTitle('Tài khoản'),
@@ -259,6 +264,12 @@ class ProfileSettingsTopSection extends StatelessWidget {
           buildButton(
             label: 'Thông tin cá nhân',
             svgPath: 'assets/icons/user-square.svg',
+            onTap: () {
+              Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pushNamed(AppRoutes.infomation_detail);
+            },
           ),
 
           SizedBox(height: scale(18)),
@@ -273,7 +284,7 @@ class ProfileSettingsTopSection extends StatelessWidget {
           SizedBox(height: scale(12)),
           buildButton(
             label: 'Thông báo',
-            svgPath: 'assets/icons/file-validation.svg',
+            svgPath: 'assets/icons/notification.svg',
           ),
         ],
       ),
@@ -297,79 +308,83 @@ class ProfileSettingsSection extends StatelessWidget {
       Color? textColor,
       Color? bgColor,
       bool isDanger = false,
+      VoidCallback? onTap,
     }) {
-      return Container(
-        width: scale(402),
-        height: scale(64),
-        padding: EdgeInsets.symmetric(
-          horizontal: scale(16),
-          vertical: scale(18),
-        ),
-        decoration: BoxDecoration(
-          color: bgColor ?? Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x26D1D1D1),
-              blurRadius: 34,
-              offset: Offset(0, 15),
-            ),
-            BoxShadow(
-              color: Color(0x21D1D1D1),
-              blurRadius: 61,
-              offset: Offset(0, 61),
-            ),
-            BoxShadow(
-              color: Color(0x14D1D1D1),
-              blurRadius: 82,
-              offset: Offset(0, 137),
-            ),
-            BoxShadow(
-              color: Color(0x0DD1D1D1),
-              blurRadius: 98,
-              offset: Offset(0, 244),
-            ),
-            BoxShadow(
-              color: Color(0x00D1D1D1),
-              blurRadius: 107,
-              offset: Offset(0, 382),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                SvgPicture.asset(
-                  svgPath,
-                  width: scale(24),
-                  height: scale(24),
-                  colorFilter: ColorFilter.mode(
-                    iconColor ?? const Color(0xFF4F4F4F),
-                    BlendMode.srcIn,
-                  ),
-                ),
-                SizedBox(width: scale(12)),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: 'SFProDisplay',
-                    fontWeight: FontWeight.w500,
-                    fontSize: scale(16),
-                    height: 24 / 16,
-                    color: textColor ?? const Color(0xFF4F4F4F),
-                  ),
-                ),
-              ],
-            ),
-            if (!isDanger)
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: scale(18),
-                color: const Color(0xFFBDBDBD),
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: scale(402),
+          height: scale(64),
+          padding: EdgeInsets.symmetric(
+            horizontal: scale(16),
+            vertical: scale(18),
+          ),
+          decoration: BoxDecoration(
+            color: bgColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x26D1D1D1),
+                blurRadius: 34,
+                offset: Offset(0, 15),
               ),
-          ],
+              BoxShadow(
+                color: Color(0x21D1D1D1),
+                blurRadius: 61,
+                offset: Offset(0, 61),
+              ),
+              BoxShadow(
+                color: Color(0x14D1D1D1),
+                blurRadius: 82,
+                offset: Offset(0, 137),
+              ),
+              BoxShadow(
+                color: Color(0x0DD1D1D1),
+                blurRadius: 98,
+                offset: Offset(0, 244),
+              ),
+              BoxShadow(
+                color: Color(0x00D1D1D1),
+                blurRadius: 107,
+                offset: Offset(0, 382),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    svgPath,
+                    width: scale(24),
+                    height: scale(24),
+                    colorFilter: ColorFilter.mode(
+                      iconColor ?? const Color(0xFF4F4F4F),
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  SizedBox(width: scale(12)),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'SFProDisplay',
+                      fontWeight: FontWeight.w500,
+                      fontSize: scale(16),
+                      height: 24 / 16,
+                      color: textColor ?? const Color(0xFF4F4F4F),
+                    ),
+                  ),
+                ],
+              ),
+              if (!isDanger)
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: scale(18),
+                  color: const Color(0xFFBDBDBD),
+                ),
+            ],
+          ),
         ),
       );
     }

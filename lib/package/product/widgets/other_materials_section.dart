@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../model/tron_goi.dart'; 
+import '../../model/tron_goi_models.dart';
+import '../../model/extension.dart';
 
 class OtherMaterialsSection extends StatelessWidget {
-  final List<VatTuTronGoi> materials;
+  final List<VatTuGroupResult> groups;
 
-  const OtherMaterialsSection({super.key, required this.materials});
+  const OtherMaterialsSection({super.key, required this.groups});
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
-
 
     String formatQuantity(num? q) {
       if (q == null) return '-';
@@ -18,26 +18,9 @@ class OtherMaterialsSection extends StatelessWidget {
       return q.toString();
     }
 
-    String formatWarranty(VatTuTronGoi item) {
-      if (item.duocBaoHanh != true) {
-        return 'Không bảo hành';
-      }
-
-      final gm = item.gm?.toInt();
-      if (gm == null) {
-        return 'Có bảo hành';
-      }
-      final years = gm ~/ 12;
-      final months = gm % 12;
-
-      if (years > 0 && months > 0) {
-        return '$years năm $months tháng';
-      } else if (years > 0) {
-        return '$years năm';
-      } else {
-        return '$months tháng';
-      }
-    }
+    // Tổng số vật tư trong tất cả group
+    final num totalQty = groups.length;
+    final String quantity = totalQty.toString();
 
     return Container(
       width: scale(430),
@@ -91,7 +74,7 @@ class OtherMaterialsSection extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    '${materials.length} vật tư',
+                    '$quantity vật tư',
                     style: TextStyle(
                       fontFamily: 'SFProDisplay',
                       fontWeight: FontWeight.w500,
@@ -158,27 +141,46 @@ class OtherMaterialsSection extends StatelessWidget {
             ),
           ),
 
-          // --- Danh sách vật tư ---
+          // --- Danh sách group (mỗi dòng = 1 nhóm vật tư phụ) ---
           ListView.separated(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: materials.length,
+            itemCount: groups.length,
             separatorBuilder: (_, __) =>
                 const Divider(height: 1, color: Color(0xFFE0E0E0)),
             itemBuilder: (context, index) {
-              final item = materials[index];
-              final vatTu = item.vatTu;
+              final group = groups[index];
 
-              final name = vatTu.ten;
-              final warranty = formatWarranty(item);
-              final quantity = formatQuantity(item.soLuong);
+              if (group.items.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              final VatTuTronGoiDto firstItem = group.items.first;
+
+              // Tên hiển thị: tên group (vd: Hệ khung nhôm)
+              final String name = group.title;
+
+              // Bảo hành: dùng warrantyText của group, fallback sang formatWarranty(firstItem)
+              final String warranty = (firstItem.thoiGianBaoHanh > 0)
+                  ? TronGoiUtils.convertMonthToYearAndMonth(
+                      firstItem.thoiGianBaoHanh,
+                    )
+                  : group
+                        .warrantyText
+                        .isNotEmpty // Chỉ dùng group.warrantyText như một fallback
+                  ? group.warrantyText
+                  : 'Không bảo hành';
+
+              // Số lượng: tổng soLuong của tất cả vật tư trong group
+              final num totalQty = group.items.length;
+              final String quantity = totalQty.toString();
 
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: scale(8)),
                 child: Row(
                   children: [
-                    // Tên thiết bị
+                    // Tên thiết bị (thực ra là tên nhóm vật tư)
                     Expanded(
                       flex: 6,
                       child: Text(

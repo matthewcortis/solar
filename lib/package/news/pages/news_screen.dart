@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../model/bai_viet_model.dart';
 import '../repository/bai_viet_repository.dart';
 import '../widgets/news_item_card.dart';
-
+import '../widgets/faq_item_card.dart';
 
 /// MÀN HÌNH RIÊNG – dùng trong bottom nav
+/// => DẠNG TAB + CUỘN DỌC
 class NewsScreen extends StatelessWidget {
   const NewsScreen({super.key});
 
@@ -12,14 +13,15 @@ class NewsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
-      body: SafeArea(
-        child: const NewsSectionCore(), // phần thân dùng chung
+      body: const SafeArea(
+        // Ở màn hình tin tức: dùng layout dọc (mặc định)
+        child: NewsSectionCore(),
       ),
     );
   }
 }
 
-/// SECTION NHÚNG VÀO HOME – chiều cao cố định, nội dung cuộn được
+/// SECTION NHÚNG VÀO HOME – chiều cao cố định, NỘI DUNG CUỘN NGANG
 class NewsEmbeddedSection extends StatelessWidget {
   final double height;
 
@@ -29,7 +31,8 @@ class NewsEmbeddedSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
-      child: const NewsSectionCore(), // dùng chung body
+      // Ở Home: vẫn là TAB nhưng list bên trong cuộn ngang
+      child: const NewsSectionCore(isHorizontal: true),
     );
   }
 }
@@ -61,8 +64,12 @@ class NewsHomeHeader extends StatelessWidget {
 }
 
 /// PHẦN THÂN DÙNG CHUNG (stateful)
+/// isHorizontal = false  -> ListView dọc (NewsScreen)
+/// isHorizontal = true   -> ListView ngang (Home)
 class NewsSectionCore extends StatefulWidget {
-  const NewsSectionCore({super.key});
+  final bool isHorizontal;
+
+  const NewsSectionCore({super.key, this.isHorizontal = false});
 
   @override
   State<NewsSectionCore> createState() => _NewsSectionCoreState();
@@ -84,7 +91,7 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
     _baiVietRepository = BaiVietRepository();
 
     futureMegaStory = _baiVietRepository.getMegaStory(page: 0, size: 100);
-    futureFAQ = _baiVietRepository.getHoiDap(page:0, size: 100);
+    futureFAQ = _baiVietRepository.getHoiDap(page: 0, size: 100);
     futureTutorial = _baiVietRepository.getHuongDan(page: 0, size: 100);
   }
 
@@ -164,7 +171,7 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
           child: IndexedStack(
             index: selectedIndex,
             children: [
-              // 🟩 Tab 0: Mega Story (API)
+              // 🟩 Tab 0: Mega Story
               FutureBuilder<List<BaiVietModel>>(
                 future: futureMegaStory,
                 builder: (context, snapshot) {
@@ -180,8 +187,8 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
                     );
                   }
 
-                  final megaStories = snapshot.data ?? [];
-                  if (megaStories.isEmpty) {
+                  final list = snapshot.data ?? [];
+                  if (list.isEmpty) {
                     return const Center(
                       child: Text('Không có Mega Story hiện tại'),
                     );
@@ -189,17 +196,27 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
 
                   return ListView.separated(
                     padding: EdgeInsets.symmetric(horizontal: scale(16)),
-                    itemCount: megaStories.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 17),
+                    scrollDirection: widget.isHorizontal
+                        ? Axis.horizontal
+                        : Axis.vertical,
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => widget.isHorizontal
+                        ? SizedBox(width: scale(17))
+                        : const SizedBox(height: 17),
                     itemBuilder: (context, index) {
-                      return NewsCardCard(news: megaStories[index]);
+                      final card = NewsCardCard(news: list[index]);
+                      // Khi cuộn ngang, cần cố định width cho card
+                      if (widget.isHorizontal) {
+                        return SizedBox(width: scale(320), child: card);
+                      }
+                      return card;
                     },
                   );
                 },
               ),
-
-              // 🟦 Tab 1: Hỏi đáp (JSON)
-               FutureBuilder<List<BaiVietModel>>(
+              // 🟦 Tab 1: Hỏi đáp
+              // 🟦 Tab 1: Hỏi đáp – LUÔN DẠNG DỌC + DÙNG FAQItem
+              FutureBuilder<List<BaiVietModel>>(
                 future: futureFAQ,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -214,57 +231,30 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
                     );
                   }
 
-                  final tutorialList = snapshot.data ?? [];
-                  if (tutorialList.isEmpty) {
+                  final list = snapshot.data ?? [];
+                  if (list.isEmpty) {
                     return const Center(
                       child: Text('Không có hỏi đáp nào hiện tại'),
                     );
                   }
 
-                  return ListView.separated(
+                  return ListView.builder(
                     padding: EdgeInsets.symmetric(horizontal: scale(16)),
-                    itemCount: tutorialList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 17),
+                    scrollDirection: Axis.vertical, // LUÔN DỌC
+                    itemCount: list.length,
                     itemBuilder: (context, index) {
-                      return NewsCardCard(news: tutorialList[index]);
+                      final item = list[index];
+
+                      return FAQItem(
+                        title: item.tieuDe,
+                        htmlUrl: item.htmlUrl, // dùng getter vừa tạo
+                      );
                     },
                   );
                 },
               ),
-              // FutureBuilder<List<FAQModel>>(
-              //   future: futureFAQ,
-              //   builder: (context, snapshot) {
-              //     if (snapshot.connectionState == ConnectionState.waiting) {
-              //       return const Center(child: CircularProgressIndicator());
-              //     }
-              //     if (snapshot.hasError) {
-              //       return Center(
-              //         child: Text(
-              //           'Lỗi tải FAQ: ${snapshot.error}',
-              //           style: const TextStyle(color: Colors.red),
-              //         ),
-              //       );
-              //     }
 
-              //     final faqList = snapshot.data ?? [];
-              //     if (faqList.isEmpty) {
-              //       return const Center(
-              //         child: Text('Không có câu hỏi nào hiện tại'),
-              //       );
-              //     }
-
-              //     return ListView.builder(
-              //       padding: EdgeInsets.symmetric(horizontal: scale(16)),
-              //       itemCount: faqList.length,
-              //       itemBuilder: (context, index) {
-              //         final faq = faqList[index];
-              //         return FAQItem(title: faq.title, content: faq.content);
-              //       },
-              //     );
-              //   },
-              // ),
-
-              // 🟨 Tab 2: Hướng dẫn (JSON)
+              // 🟨 Tab 2: Hướng dẫn
               FutureBuilder<List<BaiVietModel>>(
                 future: futureTutorial,
                 builder: (context, snapshot) {
@@ -280,8 +270,8 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
                     );
                   }
 
-                  final tutorialList = snapshot.data ?? [];
-                  if (tutorialList.isEmpty) {
+                  final list = snapshot.data ?? [];
+                  if (list.isEmpty) {
                     return const Center(
                       child: Text('Không có hướng dẫn nào hiện tại'),
                     );
@@ -289,10 +279,19 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
 
                   return ListView.separated(
                     padding: EdgeInsets.symmetric(horizontal: scale(16)),
-                    itemCount: tutorialList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 17),
+                    scrollDirection: widget.isHorizontal
+                        ? Axis.horizontal
+                        : Axis.vertical,
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => widget.isHorizontal
+                        ? SizedBox(width: scale(17))
+                        : const SizedBox(height: 17),
                     itemBuilder: (context, index) {
-                      return NewsCardCard(news: tutorialList[index]);
+                      final card = NewsCardCard(news: list[index]);
+                      if (widget.isHorizontal) {
+                        return SizedBox(width: scale(320), child: card);
+                      }
+                      return card;
                     },
                   );
                 },
@@ -304,3 +303,4 @@ class _NewsSectionCoreState extends State<NewsSectionCore> {
     );
   }
 }
+

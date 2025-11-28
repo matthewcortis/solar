@@ -21,7 +21,7 @@ class ProductItemCard extends StatelessWidget {
         ).pushNamed(AppRoutes.detailProduct, arguments: combo.id);
       },
       child: Container(
-        width: 280.w,
+        width: 190.w,
 
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
@@ -56,13 +56,13 @@ class ProductItemCard extends StatelessWidget {
                   child: ( imageUrl.isNotEmpty)
                       ? Image.network(
                           imageUrl,
-                          width: 260.w,
-                          height: 260.w,
+                          width: 180.w,
+                          height: 180.w,
                           fit: BoxFit.cover,
                         )
                       : Container(
-                          width: 260.w,
-                          height: 260.w,
+                          width: 180.w,
+                          height: 180.w,
                           color: const Color(0xFFE6E6E6),
                           child: const Icon(Icons.image_not_supported),
                         ),
@@ -123,8 +123,8 @@ class ProductItemCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'SFProDisplay',
                       fontWeight: FontWeight.w600,
-                      fontSize: 16.sp,
-                      height: 20 / 16,
+                      fontSize: 14.sp,
+                      height: 16 / 14,
                       color: const Color(0xFF4F4F4F),
                     ),
                   ),
@@ -136,15 +136,15 @@ class ProductItemCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'SFProDisplay',
                       fontWeight: FontWeight.w600,
-                      fontSize: 18.sp,
-                      height: 24 / 18,
+                      fontSize: 16.sp,
+                      height: 24 / 16,
                       color: const Color(0xFFEE4037),
                     ),
                   ),
                   SizedBox(height: 8.h),
                   Container(
-                    width: 260.w,
-                    height: 35.h,
+                    width: 180.w,
+                    height: 25.h,
                     padding: EdgeInsets.symmetric(
                       horizontal: 8.w,
                       vertical: 4.h,
@@ -157,8 +157,8 @@ class ProductItemCard extends StatelessWidget {
                       children: [
                         SvgPicture.asset(
                           'assets/icons/new-releases.svg',
-                          width: 24.w,
-                          height: 24.w,
+                          width: 18.w,
+                          height: 18.w,
                         ),
                         SizedBox(width: 4.w),
 
@@ -172,8 +172,8 @@ class ProductItemCard extends StatelessWidget {
                             style: TextStyle(
                               fontFamily: 'SF Pro',
                               fontWeight: FontWeight.w500,
-                              fontSize: 14.sp,
-                              height: 16 / 14,
+                              fontSize: 12.sp,
+                              height: 14 / 12,
                               color: const Color(0xFF4F4F4F),
                             ),
                           ),
@@ -189,8 +189,8 @@ class ProductItemCard extends StatelessWidget {
 
             // --- BUTTON ---
             Container(
-              width: 260.w,
-              height: 45.h,
+              width: 180.w,
+              height: 35.h,
               decoration: BoxDecoration(
                 color: const Color(0xFFE6E6E6),
                 borderRadius: BorderRadius.circular(12.r),

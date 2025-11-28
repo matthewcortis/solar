@@ -176,37 +176,37 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
           SizedBox(height: scale(16)),
 
           // List sản phẩm
-          Expanded(
-            child: ListView.separated(
-              controller: widget.scrollController,
-              itemCount: _products.length,
-              separatorBuilder: (_, __) => SizedBox(height: scale(16)),
-              itemBuilder: (context, index) {
-                final p = _products[index];
-                return SolarMaxCartCard(
-                  image:
-                      (p['image'] != null &&
-                          p['image'].toString().isNotEmpty &&
-                          p['image'].toString().startsWith('http'))
-                      ? NetworkImage(p['image']!)
-                      : const AssetImage('assets/images/product.png'),
+          // Expanded(
+          //   child: ListView.separated(
+          //     controller: widget.scrollController,
+          //     itemCount: _products.length,
+          //     separatorBuilder: (_, __) => SizedBox(height: scale(16)),
+          //     itemBuilder: (context, index) {
+          //       final p = _products[index];
+          //       return SolarMaxCartCard(
+          //         image:
+          //             (p['image'] != null &&
+          //                 p['image'].toString().isNotEmpty &&
+          //                 p['image'].toString().startsWith('http'))
+          //             ? NetworkImage(p['image']!)
+          //             : const AssetImage('assets/images/product.png'),
 
-                  title: p['title'] ?? '',
-                  modeTag: p['mode'] ?? '',
-                  congSuat: p['congSuat'] ?? '',
-                  chiSoIp: p['ip'] ?? '',
-                  khoiLuong: p['khoiLuong'] ?? '',
-                  baoHanh: p['baoHanh'] ?? '',
-                  priceText: p['price'] ?? '',
-                  quantity: 1,
-                  showQuantityControl: false,
-                  backgroundColor: Colors.white,
-                  onIncrease: () {},
-                  onDecrease: () {},
-                );
-              },
-            ),
-          ),
+          //         title: p['title'] ?? '',
+          //         modeTag: p['mode'] ?? '',
+          //         congSuat: p['congSuat'] ?? '',
+          //         chiSoIp: p['ip'] ?? '',
+          //         khoiLuong: p['khoiLuong'] ?? '',
+          //         baoHanh: p['baoHanh'] ?? '',
+          //         priceText: p['price'] ?? '',
+          //         quantity: 1,
+          //         showQuantityControl: false,
+          //         backgroundColor: Colors.white,
+          //         onIncrease: () {},
+          //         onDecrease: () {},
+          //       );
+          //     },
+          //   ),
+          // ),
         ],
       ),
     );

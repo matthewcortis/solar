@@ -1,23 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../model/device_model.dart';
-
+import '../../model/tron_goi_models.dart';
+import '../../model/extension.dart';
 class ProductDeviceCard extends StatelessWidget {
-  final ProductDeviceModel product;
-  final VoidCallback? onTap; 
+  final VatTuTronGoiDto item;
+  final VoidCallback? onTap;
 
   const ProductDeviceCard({
     super.key,
-    required this.product,
+    required this.item,
     this.onTap,
   });
 
+  String _buildQuantityTag() {
+    // Hiển thị dạng "x4 tấm" hoặc "x2 bộ" tùy theo đơn vị
+    final soLuong = item.soLuong;
+    final donVi = item.vatTu.donVi;
+    if (soLuong == soLuong.roundToDouble()) {
+      // là số nguyên
+      return 'x${soLuong.toInt()} $donVi';
+    }
+    return 'x$soLuong $donVi';
+  }
+
+  String _buildWarrantyText() {
+    if (!item.duocBaoHanh) return 'Không bảo hành';
+    if (item.thoiGianBaoHanh <= 0) return 'Không bảo hành';
+    final String thoiGian_baoHanh = TronGoiUtils.convertMonthToYearAndMonth(item.thoiGianBaoHanh);
+    return  'Bảo hành $thoiGian_baoHanh';
+  }
+
+  String _formatPrice(double value) {
+    // Đơn giản: format "1.000.000 đ"
+    final str = value.toStringAsFixed(0);
+    final reversed = str.split('').reversed.toList();
+    final buf = StringBuffer();
+    for (int i = 0; i < reversed.length; i++) {
+      if (i > 0 && i % 3 == 0) {
+        buf.write('.');
+      }
+      buf.write(reversed[i]);
+    }
+    final formatted = buf.toString().split('').reversed.join();
+    return '$formatted đ';
+  }
+
+  String _getThuocTinh(VatTuDto vatTu, String key) {
+    // key phụ thuộc backend: ví dụ 'congSuat', 'congNghe'
+    final tt = vatTu.duLieuRieng[key];
+    if (tt == null || tt.giaTri == null) return 'Đang cập nhật';
+    final value = tt.giaTri.toString();
+    if (tt.donVi.isNotEmpty) {
+      return '$value ${tt.donVi}';
+    }
+    return value;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final vatTu = item.vatTu;
+
+    // Ảnh chính
+    String? imageUrl;
+    if (vatTu.anhVatTus.isNotEmpty) {
+      final main = vatTu.anhVatTus.firstWhere(
+        (e) => e.anhChinh,
+        orElse: () => vatTu.anhVatTus.first,
+      );
+      imageUrl = main.tepTin.duongDan;
+    }
+
+    final quantityTag = _buildQuantityTag();
+    final warrantyText = _buildWarrantyText();
+    final priceText = _formatPrice(item.gia);
+
+    final powerText = _getThuocTinh(vatTu, 'cong_suat');
+    final techText = _getThuocTinh(vatTu, 'cong_nghe');
+
     return InkWell(
       borderRadius: BorderRadius.circular(28.r),
-      onTap: onTap, // sự kiện click thẻ
+      onTap: onTap,
       child: Container(
         width: 295.w,
         padding: EdgeInsets.all(12.w),
@@ -56,12 +119,20 @@ class ProductDeviceCard extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.topLeft,
                 children: [
-                  Image.network(
-                    product.image,
-                    width: 271.w,
-                    height: 271.h,
-                    fit: BoxFit.cover,
-                  ),
+                  if (imageUrl != null && imageUrl.isNotEmpty)
+                    Image.network(
+                      imageUrl,
+                      width: 271.w,
+                      height: 271.h,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    Image.asset(
+                      'assets/images/product.png',
+                      width: 271.w,
+                      height: 271.h,
+                      fit: BoxFit.cover,
+                    ),
                   Container(
                     width: 271.w,
                     height: 271.h,
@@ -90,7 +161,7 @@ class ProductDeviceCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(100.r),
                       ),
                       child: Text(
-                        product.quantityTag,
+                        quantityTag,
                         style: TextStyle(
                           fontFamily: 'SF Pro',
                           fontWeight: FontWeight.w500,
@@ -116,7 +187,9 @@ class ProductDeviceCard extends StatelessWidget {
                     width: double.infinity,
                     height: 28.h,
                     padding: EdgeInsets.symmetric(
-                        horizontal: 8.w, vertical: 4.h),
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF3F3F3),
                       borderRadius: BorderRadius.circular(100.r),
@@ -130,7 +203,7 @@ class ProductDeviceCard extends StatelessWidget {
                         ),
                         SizedBox(width: 4.w),
                         Text(
-                          product.warranty,
+                          warrantyText,
                           style: TextStyle(
                             fontFamily: 'SF Pro',
                             fontWeight: FontWeight.w400,
@@ -144,7 +217,7 @@ class ProductDeviceCard extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    product.title,
+                    vatTu.ten,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -157,7 +230,7 @@ class ProductDeviceCard extends StatelessWidget {
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    product.price,
+                    priceText,
                     style: TextStyle(
                       fontFamily: 'SF Pro',
                       fontWeight: FontWeight.w600,
@@ -180,7 +253,7 @@ class ProductDeviceCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        product.power,
+                        powerText,
                         style: TextStyle(
                           fontFamily: 'SF Pro',
                           fontWeight: FontWeight.w600,
@@ -191,28 +264,20 @@ class ProductDeviceCard extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 4.h),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(
-                        height: 14.sp * 1.3 * 2,
-                        child: Text(
-                          'Công nghệ:',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'SF Pro',
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14.sp,
-                            height: 1.3,
-                            color: const Color(0xFF4F4F4F),
-                          ),
+                      Text(
+                        'Công nghệ:',
+                        style: TextStyle(
+                          fontFamily: 'SF Pro',
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14.sp,
+                          color: const Color(0xFF4F4F4F),
                         ),
                       ),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          product.technology,
+                      Text(
+                          techText,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
@@ -221,12 +286,12 @@ class ProductDeviceCard extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             fontSize: 14.sp,
                             color: const Color(0xFF4F4F4F),
-                          ),
-                        ),
+                      ),
                       ),
                     ],
                   ),
-                  SizedBox(width: 6),
+                
+                 SizedBox(height: 4.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -240,7 +305,7 @@ class ProductDeviceCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        product.quantityTag,
+                        quantityTag,
                         style: TextStyle(
                           fontFamily: 'SF Pro',
                           fontWeight: FontWeight.w600,

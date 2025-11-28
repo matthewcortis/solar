@@ -1,8 +1,8 @@
 import '../../api/api_service.dart';
-import '../model/tron_goi_model.dart';
+import '../../model/tron_goi_models.dart';
 
 class TronGoiRepository {
-  Future<List<TronGoiModel>> fetchTronGoi({
+  Future<List<TronGoiDto>> fetchTronGoi({
     required int nhomTronGoiId,
     required String loaiHeThong, // "Hy-Brid" hoặc "On-Grid"
     int page = 0,
@@ -36,6 +36,6 @@ class TronGoiRepository {
     final res = await ApiService.post("/basic-api/tron-goi/filter", body);
 
     final content = (res['data']?['content'] ?? []) as List;
-    return content.map((e) => TronGoiModel.fromJson(e)).toList();
+    return content.map((e) => TronGoiDto.fromJson(e)).toList();
   }
 }

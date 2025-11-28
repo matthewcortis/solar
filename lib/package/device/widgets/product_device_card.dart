@@ -23,8 +23,8 @@ class ProductDeviceCard extends StatelessWidget {
       },
 
       child: Container(
-        width: scale(191),
-        height: scale(401),
+        width: scale(280),
+        height: scale(591),
         padding: EdgeInsets.all(scale(12)),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -58,14 +58,14 @@ class ProductDeviceCard extends StatelessWidget {
                 children: [
                   Image.network(
                     product.image,
-                    width: scale(167),
-                    height: scale(167),
+                    width: scale(270),
+                    height: scale(270),
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Image.asset(
                         'assets/images/product.png', // ảnh fallback
-                        width: scale(167),
-                        height: scale(167),
+                        width: scale(270),
+                        height: scale(270),
                         fit: BoxFit.cover,
                       );
                     },
@@ -78,8 +78,8 @@ class ProductDeviceCard extends StatelessWidget {
                   ),
 
                   Container(
-                    width: scale(167),
-                    height: scale(167),
+                        width: scale(270),
+                        height: scale(270),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       gradient: const RadialGradient(
@@ -123,7 +123,8 @@ class ProductDeviceCard extends StatelessWidget {
 
             // ---------------- THÔNG TIN ----------------
             SizedBox(
-              width: scale(167),
+                  width: scale(270),
+                  
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -163,17 +164,17 @@ class ProductDeviceCard extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(height: scale(8)),
+                  SizedBox(height: scale(4)),
                   SizedBox(
-                    height: scale(13) * 1.4 * 2,
+                    height: scale(16) * 1.4 * 2,
                     child: Text(
                       product.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'SF Pro',
-                        fontWeight: FontWeight.w600,
-                        fontSize: scale(13),
+                        fontWeight: FontWeight.w700,
+                        fontSize: scale(18),
                         height: 1.4,
                         color: const Color(0xFF4F4F4F),
                       ),
@@ -185,7 +186,7 @@ class ProductDeviceCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'SF Pro',
                       fontWeight: FontWeight.w600,
-                      fontSize: scale(15),
+                      fontSize: scale(18),
                       height: 1.4,
                       color: const Color(0xFFEE4037),
                     ),
@@ -247,8 +248,8 @@ class ProductDeviceCard extends StatelessWidget {
 
             // ---------------- NÚT ----------------
             Container(
-              width: scale(167),
-              height: scale(38),
+              width: scale(260),
+              height: scale(48),
               decoration: BoxDecoration(
                 color: const Color(0xFFE6E6E6),
                 borderRadius: BorderRadius.circular(12),
@@ -279,7 +280,7 @@ class ProductDeviceCard extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'SF Pro Display',
                         fontWeight: FontWeight.w500,
-                        fontSize: scale(13),
+                        fontSize: scale(16),
                         color: const Color(0xFFEE4037),
                       ),
                     ),

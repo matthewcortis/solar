@@ -108,4 +108,7 @@ class BaiVietModel {
 
   // Getter tiện dùng
   String? get imageUrl => anhBia?.duongDan;
+
+  // URL file HTML nội dung
+  String? get htmlUrl => noiDung?.duongDan;
 }

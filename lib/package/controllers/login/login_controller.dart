@@ -19,25 +19,43 @@ class LoginController extends ChangeNotifier {
       final body = {"sdt": sdt, "matKhau": matKhau};
 
       final res = await ApiService.post("/basic-api/nguoi-dung/login", body);
-
       final status = res["status"] as int?;
+
       if (status == 200 && res["data"] != null) {
         final data = res["data"] as Map<String, dynamic>;
-        final phanQuyenRaw = (data["phanQuyen"] ?? "").toString();
 
+        /// MAP ROLE
+        final phanQuyenRaw = (data["phanQuyen"] ?? "").toString();
         final role = _mapRoleFromPhanQuyen(phanQuyenRaw);
+
+        /// THÔNG TIN USER
         final userId = data["id"]?.toString() ?? "";
         final fullName = data["hoVaTen"]?.toString() ?? "";
         final bankName = data["nganHang"]?.toString() ?? "";
         final bankAccount = data["maNganHang"]?.toString() ?? "";
-        debugPrint('Login phanQuyen="$phanQuyenRaw" -> role="$role"');
 
+        /// NEW: LẤY THÔNG TIN KHU VỰC TỪ coSo
+        final coSo = data["coSo"] as Map<String, dynamic>?;
+
+        final branchId = coSo?["id"]?.toString();
+        final branchCode = coSo?["ma"]?.toString(); // HN / HCM
+        final officeAddress = coSo?["dcVanPhong"]?.toString();
+        final warehouseAddress = coSo?["dcKho"]?.toString();
+
+        debugPrint('Login phanQuyen="$phanQuyenRaw" -> role="$role"');
+        debugPrint('Branch id=$branchId, code=$branchCode');
+
+        /// LƯU DỮ LIỆU USER + KHU VỰC
         await AuthStorage.save(
           role: role,
           userId: userId,
           fullName: fullName,
           bankName: bankName,
           bankAccount: bankAccount,
+          branchId: branchId,
+          branchCode: branchCode,
+          officeAddress: officeAddress,
+          warehouseAddress: warehouseAddress,
         );
 
         isLoading = false;

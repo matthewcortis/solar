@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../product/widgets/product_card.dart';
-import '../model/tron_goi_hot.dart';
+import '../../model/tron_goi_models.dart';
 
 
 //done
 class BestSellerSection extends StatelessWidget {
-  final List<TronGoiBanChayModel> combos;
+  final List<TronGoiDto> combos;
   const BestSellerSection({super.key, required this.combos});
 
   @override
@@ -55,7 +55,7 @@ class BestSellerSection extends StatelessWidget {
           // --- Horizontal List ---
           SizedBox(
             width: 398.w,
-            height: 380.h,
+            height: 480.h,
             child: ListView.separated(
               clipBehavior: Clip.none,
               scrollDirection: Axis.horizontal,

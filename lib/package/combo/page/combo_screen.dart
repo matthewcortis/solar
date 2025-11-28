@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/combo_card.dart';
 import './tron_goi_list.dart';
-import '../model/nhom_tron_goi_model.dart';
+import '../../model/tron_goi_models.dart';
 import '../repository/nhom_tron_goi_repo.dart';
 
 class ComboListScreen extends StatefulWidget {
@@ -12,7 +12,7 @@ class ComboListScreen extends StatefulWidget {
 }
 
 class _ComboListScreenState extends State<ComboListScreen> {
-  late Future<List<NhomTronGoiModel>> _futureCombos;
+  late Future<List<NhomTronGoiDto>> _futureCombos;
   final _repo = NhomTronGoiRepository();
 
   @override
@@ -23,12 +23,12 @@ class _ComboListScreenState extends State<ComboListScreen> {
 
 
 
-  void _handleTap(NhomTronGoiModel combo) {
+  void _handleTap(NhomTronGoiDto combo) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ProductListScreen(
-          nhomTronGoiId: combo.id, // truyền ID nhóm trọn gói
-          comboName: combo.ten, // truyền tên để hiển thị tiêu đề
+          nhomTronGoiId: combo.id, 
+          comboName: combo.ten, 
         ),
       ),
     );
@@ -62,7 +62,7 @@ class _ComboListScreenState extends State<ComboListScreen> {
               ),
               SizedBox(height: scale(24)),
               Expanded(
-                child: FutureBuilder<List<NhomTronGoiModel>>(
+                child: FutureBuilder<List<NhomTronGoiDto>>(
                   future: _futureCombos,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {

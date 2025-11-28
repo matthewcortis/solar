@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../model/device_model.dart';
+import '../../model/tron_goi_models.dart';
 import '../widgets/product_card_temp.dart';
 import '../../../routes.dart';
+
 class DeviceSection extends StatelessWidget {
-  final List<ProductDeviceModel> deviceProducts;
+  final List<VatTuTronGoiDto> deviceProducts;
+
   const DeviceSection({super.key, required this.deviceProducts});
 
   @override
@@ -67,18 +69,16 @@ class DeviceSection extends StatelessWidget {
               itemCount: deviceProducts.length,
               separatorBuilder: (_, __) => SizedBox(width: scale(16)),
               itemBuilder: (context, index) {
-                final product = deviceProducts[index];
+                final item = deviceProducts[index];
                 return ProductDeviceCard(
-                  product: product,
-
+                  item: item,
                   onTap: () {
-                    print(product.id);
+                    // id của VatTuTronGoiDto trong combo
                     Navigator.pushNamed(
                       context,
                       AppRoutes.detailProductDevice,
-                      arguments: product.id,
+                      arguments: item.vatTu.id,
                     );
-                      
                   },
                 );
               },

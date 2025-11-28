@@ -80,6 +80,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
     return Navigator(
       key: key,
       onGenerateRoute: (settings) {
+       
         if (settings.name == '/detail-product-device') {
           return MaterialPageRoute(
             builder: (_) => ProductDetailScreen(),

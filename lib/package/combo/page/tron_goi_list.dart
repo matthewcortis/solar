@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../model/tron_goi_model.dart';
+import '../../model/tron_goi_models.dart';
 import '../repository/tron_goi_repo.dart';
-import '../../product/widgets/product_card.dart';
+import '../../product/widgets/product_card_combo.dart';
 
 class ProductListScreen extends StatefulWidget {
   final int nhomTronGoiId; // ID nhóm trọn gói truyền từ màn trước
@@ -22,8 +22,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool isHybridSelected = true;
 
   final _repo = TronGoiRepository();
-  late Future<List<TronGoiModel>> _futureHybrid;
-  late Future<List<TronGoiModel>> _futureOnGrid;
+  late Future<List<TronGoiDto>> _futureHybrid;
+  late Future<List<TronGoiDto>> _futureOnGrid;
 
   @override
   void initState() {
@@ -107,7 +107,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
           // --- Product List ---
           Expanded(
-            child: FutureBuilder<List<TronGoiModel>>(
+            child: FutureBuilder<List<TronGoiDto>>(
               future: future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {

@@ -1,9 +1,9 @@
 // lib/package/product/repository/product_repository.dart
 import '../../api/api_service.dart';
-import '../model/device_detail_model.dart';
+import '../../model/tron_goi_models.dart';
 
 class ProductRepository {
-  Future<ProductDetailModel?> getProductDetailById(int id) async {
+  Future<VatTuDto?> getProductDetailById(int id) async {
     final body = {
       "filters": [
         {
@@ -24,7 +24,7 @@ class ProductRepository {
 
     final content = data['content'];
     if (content is List && content.isNotEmpty) {
-      return ProductDetailModel.fromJson(content.first);
+      return VatTuDto.fromJson(content.first);
     }
     return null;
   }

@@ -6,7 +6,6 @@ import '../widgets/list_product.dart';
 import '../widgets/warranty_price.dart';
 import '../widgets/bank_contract_info.dart';
 import '../../controllers/login/auth_storage.dart';
-import '../model/tron_goi_hot.dart';
 import '../repository/hot_combo_repo.dart';
 import '../../news/pages/news_screen.dart';
 import './customer_screen.dart';
@@ -14,7 +13,7 @@ import '../repository/hop_dong_repo.dart';
 import '../repository/khach_hang_repo.dart';
 import '../../model/hop_dong_model.dart';
 import '../../utils/app_utils.dart';
-
+import '../../model/tron_goi_models.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -28,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final HopDongRepository _hopDongRepository = HopDongRepository();
   late Future<List<HopDongModel>> _futureHopDong;
 
-  late final Future<List<TronGoiBanChayModel>> _futureBestSeller;
+  late final Future<List<TronGoiDto>> _futureBestSeller;
   final TronGoiRepository _tronGoiRepository = TronGoiRepository();
 
   final repo = KhachHangRepository();
@@ -235,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
 
                   // Combo bán chạy
-                  FutureBuilder<List<TronGoiBanChayModel>>(
+                  FutureBuilder<List<TronGoiDto>>(
                     future: _futureBestSeller,
                     builder: (context, bestSnapshot) {
                       if (bestSnapshot.connectionState ==
@@ -264,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Tin tức
                   const NewsHomeHeader(),
-                  const NewsEmbeddedSection(height: 380),
+                  const NewsEmbeddedSection(height: 400,)
                 ],
               ),
             ),

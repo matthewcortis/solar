@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../model/tron_goi_base.dart';
+import '../../../../model/tron_goi_models.dart';
 
 class ProductItemCard extends StatelessWidget {
-  final TronGoiInfo combo;
+  final TronGoiDto combo;
   final bool isSelected;
 
   const ProductItemCard({
@@ -31,12 +31,12 @@ class ProductItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String? imageUrl = combo.duongDan;
+    final String? imageUrl = combo.tepTin.duongDan;
     final String typeText = combo.loaiHeThong;
     final String nameText = combo.ten;
     final String priceText = _formatPrice(combo.tongGia);
     final String savingText =
-        'Công suất ~ ${combo.congSuatHeThong.toStringAsFixed(1)} kWp';
+        'Công suất ~ ${combo.congSuatHeThong} kWp';
 
     return GestureDetector(
       child: Container(

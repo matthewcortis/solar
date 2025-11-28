@@ -5,10 +5,9 @@ class WarrantyItemCard extends StatelessWidget {
   final String image;
   final String statusText;
   final String productName;
-  final String activeDate;
+  final String activeDate; // dạng: dd/MM/yyyy hoặc ISO yyyy-MM-dd
   final String duration;
-  final String endDate;
-  final double progress;
+  final String endDate; // dạng: dd/MM/yyyy hoặc ISO yyyy-MM-dd
 
   const WarrantyItemCard({
     super.key,
@@ -18,13 +17,15 @@ class WarrantyItemCard extends StatelessWidget {
     required this.activeDate,
     required this.duration,
     required this.endDate,
-    required this.progress,
   });
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
+
+    // Tính progress dựa theo ngày kích hoạt – ngày hết hạn – hôm nay
+    final double progress = _calcProgressFromDates(activeDate, endDate);
 
     return Container(
       width: scale(402),
@@ -111,13 +112,14 @@ class WarrantyItemCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       /// Status Tag
-                      ///
                       _buildStatusTag(scale, statusText),
 
                       SizedBox(height: scale(4)),
 
                       Text(
                         productName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: scale(14),
                           fontWeight: FontWeight.w600,
@@ -172,10 +174,14 @@ class WarrantyItemCard extends StatelessWidget {
                           color: const Color(0xFFE8E8E8),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: getProgressGradientColor(progress),
-                            borderRadius: BorderRadius.circular(8),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: progress, // 0.0 → 1.0
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: getProgressGradientColor(progress),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ),
@@ -219,10 +225,61 @@ class WarrantyItemCard extends StatelessWidget {
   }
 }
 
+/// Parse chuỗi ngày về DateTime.
+/// Ưu tiên dạng dd/MM/yyyy, fallback sang ISO (yyyy-MM-dd).
+DateTime? _parseDate(String value) {
+  if (value.isEmpty) return null;
+
+  // Thử dạng dd/MM/yyyy (ví dụ: 01/01/2024)
+  final parts = value.split('/');
+  if (parts.length == 3) {
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (day != null && month != null && year != null) {
+      return DateTime(year, month, day);
+    }
+  }
+
+  // Fallback: ISO 8601 "2024-01-01"
+  try {
+    return DateTime.parse(value);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Tính progress [0..1] dựa theo ngày kích hoạt – ngày hết hạn – hôm nay.
+double _calcProgressFromDates(String activeDate, String endDate) {
+  final start = _parseDate(activeDate);
+  final end = _parseDate(endDate);
+  if (start == null || end == null) return 0.0;
+
+  final now = DateTime.now();
+
+  // Nếu chưa đến ngày kích hoạt → 0%
+  if (now.isBefore(start)) return 0.0;
+
+  // Nếu đã qua ngày hết hạn → 100%
+  if (now.isAfter(end)) return 1.0;
+
+  final totalDays = end.difference(start).inDays;
+  if (totalDays <= 0) return 1.0;
+
+  final passedDays = now.difference(start).inDays;
+  final raw = passedDays / totalDays;
+  final numClamped = raw.clamp(0.0, 1.0);
+
+  return (numClamped as num).toDouble();
+}
+
 Color getProgressGradientColor(double progress) {
+  final numClamped = progress.clamp(0.0, 1.0);
+  final t = (numClamped as num).toDouble();
+
   return Color.lerp(
-    const Color(0xFF2ECC71),
-    const Color(0xFFEE4037),
-    progress.clamp(0, 1),
+    const Color(0xFF2ECC71), // xanh khi mới kích hoạt
+    const Color(0xFFEE4037), // đỏ khi gần/đã hết hạn
+    t,
   )!;
 }

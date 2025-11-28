@@ -1,8 +1,8 @@
 import '../../api/api_service.dart';
-import '../model/tron_goi_hot.dart';
+import '../../model/tron_goi_models.dart';
 
 class TronGoiRepository {
-  Future<List<TronGoiBanChayModel>> getDanhSachBanChay() async {
+  Future<List<TronGoiDto>> getDanhSachBanChay() async {
     final body = {
       "filters": [
         {
@@ -29,7 +29,7 @@ class TronGoiRepository {
 
     return content
         .map(
-          (e) => TronGoiBanChayModel.fromJson(e as Map<String, dynamic>),
+          (e) => TronGoiDto.fromJson(e as Map<String, dynamic>),
         )
         .toList();
   }

@@ -9,8 +9,8 @@ import '../model/bai_viet_model.dart';
 import '../repository/bai_viet_detail.dart'; // repo gọi /bai-viet/filter
 
 import '../../home/widgets/list_product.dart';
-import '../../home/model/tron_goi_hot.dart';
 import '../../home/repository/hot_combo_repo.dart';
+import '../../model/tron_goi_models.dart';  
 class DetailNewsScreen extends StatefulWidget {
   const DetailNewsScreen({super.key});
 
@@ -19,7 +19,7 @@ class DetailNewsScreen extends StatefulWidget {
 }
 
 class _DetailNewsScreenState extends State<DetailNewsScreen> {
-  late Future<List<TronGoiBanChayModel>> _productNews;
+  late Future<List<TronGoiDto>> _productNews;
   late Future<_BaiVietDetailData> _detailFuture;
   bool _initialized = false;
   final _baiVietRepo = BaiVietRepository();
@@ -158,7 +158,7 @@ class _DetailNewsScreenState extends State<DetailNewsScreen> {
 
                 const SizedBox(height: 10),
 
-                FutureBuilder<List<TronGoiBanChayModel>>(
+                FutureBuilder<List<TronGoiDto>>(
                   future: _productNews,
                   builder: (context, bestSnapshot) {
                     if (bestSnapshot.connectionState ==

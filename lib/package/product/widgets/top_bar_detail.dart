@@ -2,9 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../routes.dart';
-/// ==========================
-///  IMAGE PREVIEW (HEADER)
-/// ==========================
+import '../../model/tron_goi_models.dart';
+
 class ProductImagePreview extends StatelessWidget {
   final String? imageUrl;
 
@@ -15,26 +14,67 @@ class ProductImagePreview extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
 
     Widget buildImage() {
+      Widget child;
+
       if (imageUrl != null && imageUrl!.isNotEmpty) {
-        // Nếu là URL tuyệt đối (http/https) thì dùng Image.network
+        // URL tuyệt đối
         if (imageUrl!.startsWith('http')) {
-          return Image.network(imageUrl!, fit: BoxFit.contain);
+          child = Image.network(
+            imageUrl!,
+            fit: BoxFit.cover, // Ảnh luôn phủ đầy khung, không méo
+            width: double.infinity,
+            height: double.infinity,
+            alignment: Alignment.center,
+            filterQuality: FilterQuality.high,
+            errorBuilder: (_, __, ___) {
+              return Image.asset(
+                'assets/images/product.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              );
+            },
+          );
+        } else {
+          // Asset tương đối
+          child = Image.asset(
+            imageUrl!,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            alignment: Alignment.center,
+            filterQuality: FilterQuality.high,
+          );
         }
-        // Nếu là đường dẫn asset tương đối thì dùng Image.asset
-        return Image.asset(imageUrl!, fit: BoxFit.contain);
+      } else {
+        // Fallback ảnh default
+        child = Image.asset(
+          'assets/images/product.png',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          alignment: Alignment.center,
+          filterQuality: FilterQuality.high,
+        );
       }
 
-      // Fallback ảnh default
-      return Image.asset('assets/images/product.png', fit: BoxFit.contain);
+      return ClipRRect(
+        // Nếu muốn bo góc trên theo Figma, chỉnh ở đây
+        borderRadius: BorderRadius.zero,
+        child: ColoredBox(
+          color: const Color(0xFFEEEEEE), // nền xám nhạt khi ảnh chưa load
+          child: child,
+        ),
+      );
     }
 
-    // KHÔNG dùng Scaffold ở đây, widget này dùng bên trong màn DetailProduct
+    // Widget dùng trong màn DetailProduct, không dùng Scaffold
     return SizedBox(
       width: width,
-      height: 355, // đúng với Figma section ảnh
+      height: 340, // đúng với Figma section ảnh
       child: Stack(
         children: [
-          // --- Image ---
+          // --- Image full section ---
           Positioned.fill(child: buildImage()),
 
           // --- Back Glass Button ---
@@ -92,7 +132,7 @@ class ProductImagePreview extends StatelessWidget {
             ),
           ),
 
-          // --- Glass Label “1/13 ảnh” ---
+          // --- Glass Label “1 ảnh” ---
           Positioned(
             bottom: width * 0.1,
             right: 16,
@@ -110,7 +150,7 @@ class ProductImagePreview extends StatelessWidget {
                     borderRadius: BorderRadius.circular(1000),
                   ),
                   child: const Text(
-                    '1/13 ảnh',
+                    '1 ảnh',
                     style: TextStyle(
                       fontFamily: 'SFProDisplay',
                       fontWeight: FontWeight.w500,
@@ -133,19 +173,17 @@ class ProductImagePreview extends StatelessWidget {
 ///  (đổ dữ liệu từ ngoài)
 /// ==========================
 class ComboDetailCard extends StatelessWidget {
-  final String savingPerMonthText; // Ví dụ: "5.000.000 đ"
   final String title; // Tên combo
   final String priceText; // Ví dụ: "49.900.000 đ"
-
   final String description; // Mô tả hệ thống
+  TronGoiDto tronGoi;
 
-  const ComboDetailCard({
+  ComboDetailCard({
     super.key,
-    required this.savingPerMonthText,
     required this.title,
     required this.priceText,
-
     required this.description,
+    required this.tronGoi,
   });
 
   @override
@@ -181,30 +219,30 @@ class ComboDetailCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // --- Tiết kiệm / tháng ---
-          Row(
-            children: [
-              SvgPicture.asset(
-                'assets/icons/new-releases.svg', // đường dẫn tới file SVG của bạn
-                width: 16,
-                height: 16,
-                colorFilter: const ColorFilter.mode(
-                  Color(0xFF4F4F4F),
-                  BlendMode.srcIn,
-                ),
-              ),
-              SizedBox(width: scale(4)),
-              Text(
-                'Tiết kiệm/ tháng: $savingPerMonthText',
-                style: TextStyle(
-                  fontFamily: 'SFProDisplay',
-                  fontWeight: FontWeight.w400,
-                  fontSize: scale(13),
-                  height: 20 / 13,
-                  color: const Color(0xFF4F4F4F),
-                ),
-              ),
-            ],
-          ),
+          // Row(
+          //   children: [
+          //     SvgPicture.asset(
+          //       'assets/icons/new-releases.svg', // đường dẫn tới file SVG của bạn
+          //       width: 16,
+          //       height: 16,
+          //       colorFilter: const ColorFilter.mode(
+          //         Color(0xFF4F4F4F),
+          //         BlendMode.srcIn,
+          //       ),
+          //     ),
+          //     SizedBox(width: scale(4)),
+          //     Text(
+          //       'Tiết kiệm/ tháng: $savingPerMonthText',
+          //       style: TextStyle(
+          //         fontFamily: 'SFProDisplay',
+          //         fontWeight: FontWeight.w400,
+          //         fontSize: scale(13),
+          //         height: 20 / 13,
+          //         color: const Color(0xFF4F4F4F),
+          //       ),
+          //     ),
+          //   ],
+          // ),
           SizedBox(height: scale(8)),
 
           // --- Tên combo ---
@@ -213,8 +251,8 @@ class ComboDetailCard extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'SFProDisplay',
               fontWeight: FontWeight.w600,
-              fontSize: scale(16),
-              height: 22 / 16,
+              fontSize: scale(18),
+              height: 22 / 18,
               color: const Color(0xFF4F4F4F),
             ),
           ),
@@ -233,35 +271,33 @@ class ComboDetailCard extends StatelessWidget {
           ),
           SizedBox(height: scale(12)),
 
-          // --- Hóa đơn tiền điện ---
-          Container(
-            width: scale(295),
-            height: scale(36),
-            padding: EdgeInsets.symmetric(
-              horizontal: scale(12),
-              vertical: scale(8),
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0x33E6E6E6),
-              borderRadius: BorderRadius.circular(scale(12)),
-            ),
-            child: Center(
-              child: Text(
-                description,
-                style: TextStyle(
-                  fontFamily: 'SFProDisplay',
-                  fontWeight: FontWeight.w500,
-                  fontSize: scale(13),
-                  height: 20 / 13,
-                  color: const Color(0xFF4F4F4F),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: scale(16)),
+          // Container(
+          //   width: scale(295),
+          //   height: scale(36),
+          //   padding: EdgeInsets.symmetric(
+          //     horizontal: scale(12),
+          //     vertical: scale(8),
+          //   ),
+          //   decoration: BoxDecoration(
+          //     color: const Color(0x33E6E6E6),
+          //     borderRadius: BorderRadius.circular(scale(12)),
+          //   ),
+          //   child: Center(
+          //     child: Text(
+          //       description,
+          //       style: TextStyle(
+          //         fontFamily: 'SFProDisplay',
+          //         fontWeight: FontWeight.w500,
+          //         fontSize: scale(13),
+          //         height: 20 / 13,
+          //         color: const Color(0xFF4F4F4F),
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          // SizedBox(height: scale(16)),
 
           // --- Mô tả ---
-       
           SizedBox(height: scale(24)),
 
           // --- 2 nút ---
@@ -304,7 +340,10 @@ class ComboDetailCard extends StatelessWidget {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.of(context).pushNamed(AppRoutes.baoGiaScreen);
+                      Navigator.of(context).pushNamed(
+                        AppRoutes.baoGiaScreen,
+                        arguments: tronGoi, 
+                      );
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
