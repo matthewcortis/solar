@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
-import '../quantity_control.dart'; // import widget mới
+import '../quantity_control.dart';
 
 class ProductCard extends StatelessWidget {
+    final String title;
+  final String phaseText;
+  final String price;
+  final String accessoryText;
+  final ImageProvider imageProvider;
+  final int quantity;
+  final VoidCallback? onAdd;
+  final VoidCallback? onRemove;
+
   const ProductCard({
     super.key,
     required this.title,
     required this.phaseText,
+    required this.price,
     required this.accessoryText,
     required this.imageProvider,
     required this.quantity,
@@ -13,13 +23,6 @@ class ProductCard extends StatelessWidget {
     this.onRemove,
   });
 
-  final String title;
-  final String phaseText;
-  final String accessoryText;
-  final ImageProvider imageProvider;
-  final int quantity;
-  final VoidCallback? onAdd;
-  final VoidCallback? onRemove;
 
   static const _titleStyle = TextStyle(
     fontSize: 14,
@@ -38,18 +41,38 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 398,
-      height: 162,
+      height: 179,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [
-            BoxShadow(color: Color(0x26D1D1D1), blurRadius: 34, offset: Offset(0, 15)),
-            BoxShadow(color: Color(0x21D1D1D1), blurRadius: 61, offset: Offset(0, 61)),
-            BoxShadow(color: Color(0x14D1D1D1), blurRadius: 82, offset: Offset(0, 137)),
-            BoxShadow(color: Color(0x0DD1D1D1), blurRadius: 98, offset: Offset(0, 244)),
-            BoxShadow(color: Color(0x00D1D1D1), blurRadius: 107, offset: Offset(0, 382)),
+            BoxShadow(
+              color: Color(0x26D1D1D1),
+              blurRadius: 34,
+              offset: Offset(0, 15),
+            ),
+            BoxShadow(
+              color: Color(0x21D1D1D1),
+              blurRadius: 61,
+              offset: Offset(0, 61),
+            ),
+            BoxShadow(
+              color: Color(0x14D1D1D1),
+              blurRadius: 82,
+              offset: Offset(0, 137),
+            ),
+            BoxShadow(
+              color: Color(0x0DD1D1D1),
+              blurRadius: 98,
+              offset: Offset(0, 244),
+            ),
+            BoxShadow(
+              color: Color(0x00D1D1D1),
+              blurRadius: 107,
+              offset: Offset(0, 382),
+            ),
           ],
         ),
         child: Column(
@@ -73,10 +96,9 @@ class ProductCard extends StatelessWidget {
                         style: _titleStyle,
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        phaseText,
-                        style: _subTextStyle,
-                      ),
+                      Text(phaseText, style: _subTextStyle),
+                      const SizedBox(height: 4),
+                      Text(price, style: _subTextStyle),
                       const SizedBox(height: 4),
                       Text(
                         accessoryText,
@@ -128,10 +150,7 @@ class _GradientBorderImage extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFFFFFF),
-              Color(0x00FFFFFF),
-            ],
+            colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
           ),
         ),
         child: Padding(
@@ -142,27 +161,46 @@ class _GradientBorderImage extends StatelessWidget {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0x00FFFFFF),
-                  Color(0xB3FFFFFF),
-                ],
+                colors: [Color(0x00FFFFFF), Color(0xB3FFFFFF)],
               ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(1),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image(
-                  image: imageProvider,
-                  width: 78,
-                  height: 78,
-                  fit: BoxFit.cover,
-                ),
+                child: _buildImage(imageProvider),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  /// Hàm này đảm bảo load ảnh API an toàn + fallback
+  Widget _buildImage(ImageProvider provider) {
+    if (provider is NetworkImage) {
+      return Image.network(
+        provider.url,
+        width: 78,
+        height: 78,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) {
+          return Image.asset(
+            'assets/images/product.png',
+            width: 78,
+            height: 78,
+            fit: BoxFit.cover,
+          );
+        },
+      );
+    }
+
+    return Image(
+      image: provider,
+      width: 78,
+      height: 78,
+      fit: BoxFit.cover,
     );
   }
 }

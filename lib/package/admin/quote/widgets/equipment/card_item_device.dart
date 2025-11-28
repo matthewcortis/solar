@@ -2,31 +2,26 @@ import 'package:flutter/material.dart';
 import '../quantity_control.dart';
 
 class SolarMaxCartCard extends StatelessWidget {
-  /// Nhận đường dẫn ảnh (có thể là URL http hoặc asset path).
-  /// Nếu null hoặc rỗng sẽ dùng ảnh fallback.
+
   final String? imageUrl;
 
   final String title;
-  final String modeTag; // "Hy-Brid"
+  final String modeTag;
+  final String congSuatLabel;
+
   final String congSuat;
-  final String chiSoIp;
   final String khoiLuong;
   final String baoHanh;
-  final String priceText; // Ví dụ: "9.999.999đ"
+  final String priceText;
 
-  /// Số lượng hiện tại
   final int quantity;
 
-  /// Callback bấm nút +
   final VoidCallback? onIncrease;
 
-  /// Callback bấm nút -
   final VoidCallback? onDecrease;
 
-  /// Có hiển thị cụm tăng/giảm không
   final bool showQuantityControl;
 
-  /// Màu nền card
   final Color? backgroundColor;
 
   const SolarMaxCartCard({
@@ -34,8 +29,8 @@ class SolarMaxCartCard extends StatelessWidget {
     required this.imageUrl,
     required this.title,
     required this.modeTag,
+    required this.congSuatLabel,
     required this.congSuat,
-    required this.chiSoIp,
     required this.khoiLuong,
     required this.baoHanh,
     required this.priceText,
@@ -101,8 +96,8 @@ class SolarMaxCartCard extends StatelessWidget {
                 child: _RightContent(
                   title: title,
                   modeTag: modeTag,
+                   congSuatLabel: congSuatLabel,  
                   congSuat: congSuat,
-                  chiSoIp: chiSoIp,
                   khoiLuong: khoiLuong,
                   baoHanh: baoHanh,
                   priceText: priceText,
@@ -188,8 +183,8 @@ class _GradientBorderImage extends StatelessWidget {
 class _RightContent extends StatelessWidget {
   final String title;
   final String modeTag;
+    final String congSuatLabel;
   final String congSuat;
-  final String chiSoIp;
   final String khoiLuong;
   final String baoHanh;
   final String priceText;
@@ -202,8 +197,8 @@ class _RightContent extends StatelessWidget {
   const _RightContent({
     required this.title,
     required this.modeTag,
+    required this.congSuatLabel,
     required this.congSuat,
-    required this.chiSoIp,
     required this.khoiLuong,
     required this.baoHanh,
     required this.priceText,
@@ -273,8 +268,7 @@ class _RightContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _InfoRow(label: 'Công suất:', value: congSuat, scale: scale),
-                _InfoRow(label: 'Chỉ số IP:', value: chiSoIp, scale: scale),
+                _InfoRow(label: congSuatLabel , value: congSuat, scale: scale),
                 _InfoRow(label: 'Khối lượng:', value: khoiLuong, scale: scale),
                 _InfoRow(label: 'Bảo hành:', value: baoHanh, scale: scale),
               ],
@@ -314,6 +308,7 @@ class _RightContent extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
+  
   final String label;
   final String value;
   final double Function(double v) scale;

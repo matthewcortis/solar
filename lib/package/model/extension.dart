@@ -1,6 +1,26 @@
 import 'tron_goi_models.dart';
 import 'package:intl/intl.dart';
 
+class extBaoGiaTronGoi {
+  extBaoGiaTronGoi._();
+  static String formatCongSuatTong(String congSuat1BienTan, double soLuong) {
+    if (congSuat1BienTan.isEmpty) return '';
+
+    final parsed = num.tryParse(
+      congSuat1BienTan.replaceAll(RegExp('[^0-9.]'), ''),
+    );
+    if (parsed == null) return congSuat1BienTan;
+
+    final total = (parsed * soLuong) / 1000; // W → kW
+
+    final isInt = total % 1 == 0;
+
+    final display = isInt ? total.toInt().toString() : total.toStringAsFixed(1);
+
+    return '$display kW';
+  }
+}
+
 class TronGoiUtils {
   TronGoiUtils._(); // prevent instance
 
@@ -15,7 +35,7 @@ class TronGoiUtils {
 
   static String formatMoney(num value) {
     final formatter = NumberFormat('#,##0', 'vi_VN');
-    return formatter.format(value);
+    return '${formatter.format(value)}đ';
   }
 
   static double? calcCongSuatByGroup(
@@ -192,17 +212,31 @@ extension VatTuImageExt on VatTuDto {
 
     return null;
   }
-
-
-
-  
 }
+extension VatTuGiaX on VatTuDto {
+  double? get giaBanDefault {
+    if (thongTinGias.isEmpty) return null;
+
+    final ThongTinGiaDto block = thongTinGias.firstWhere(
+      (t) => t.trangThai == 1,
+      orElse: () => thongTinGias.first,
+    );
+
+    if (block.dsGia.isEmpty) return null;
+
+    // ưu tiên GiaInfo có giaBan != null
+    final GiaInfo giaInfo = block.dsGia.firstWhere(
+      (g) => g.giaBan != null,
+      orElse: () => block.dsGia.first,
+    );
+
+    return giaInfo.giaBan;
+  }
+}
+
+
 extension VatTuTronGoiCopy on VatTuTronGoiDto {
-  VatTuTronGoiDto copyWith({
-    double? soLuong,
-    double? gia,
-    double? gm,
-  }) {
+  VatTuTronGoiDto copyWith({double? soLuong, double? gia, double? gm}) {
     return VatTuTronGoiDto(
       id: id,
       vatTu: vatTu,

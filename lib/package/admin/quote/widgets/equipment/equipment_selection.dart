@@ -160,17 +160,32 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                 final int index = entry.key;
                 final VatTuTronGoiDto item = entry.value;
                 final vt = item.vatTu;
+                final String congSuatLabel = vt.nhomVatTu.ma == 'PIN_LUU_TRU'
+                    ? 'Lưu trữ:'
+                    : 'Công suất:';
 
                 final num lineTotal = item.gia * item.soLuong;
+                print(item.thoiGianBaoHanh);
 
                 return SolarMaxCartCard(
                   imageUrl: vt.mainImageUrl,
                   title: vt.ten,
                   modeTag: widget.selectedType ?? '',
-                  congSuat: vt.fieldValue('dung_luong'),
-                  chiSoIp: '',
-                  khoiLuong: vt.fieldValue('khoi_luong'),
-                  baoHanh: item.gm > 0 ? '${item.gm} tháng' : '',
+                  congSuatLabel: congSuatLabel,
+                  congSuat: vt.nhomVatTu.ma == 'TAM_PIN'
+                      ? extBaoGiaTronGoi.formatCongSuatTong(
+                          vt.fieldValue('cong_suat'),
+                          item.soLuong,
+                        )
+                      : '',
+
+                  khoiLuong: '${vt.fieldValue('khoi_luong')} kg',
+                  baoHanh: item.thoiGianBaoHanh > 0
+                      ? TronGoiUtils.convertMonthToYearAndMonth(
+                          item.thoiGianBaoHanh,
+                        )
+                      : '',
+
                   priceText: TronGoiUtils.formatMoney(lineTotal),
                   quantity: item.soLuong.toInt(),
                   onIncrease: () {
@@ -208,6 +223,9 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                 final int index = entry.key;
                 final VatTuTronGoiDto item = entry.value;
                 final vt = item.vatTu;
+                final String congSuatLabel = vt.nhomVatTu.ma == 'PIN_LUU_TRU'
+                    ? 'Lưu trữ:'
+                    : 'Công suất:';
 
                 final num lineTotal = item.gia * item.soLuong;
 
@@ -215,10 +233,20 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                   imageUrl: vt.mainImageUrl,
                   title: vt.ten,
                   modeTag: widget.selectedType ?? '',
-                  congSuat: vt.fieldValue('dung_luong'),
-                  chiSoIp: '',
-                  khoiLuong: vt.fieldValue('khoi_luong'),
-                  baoHanh: item.gm > 0 ? '${item.gm} tháng' : '',
+                  congSuatLabel: congSuatLabel,
+                  congSuat: vt.nhomVatTu.ma == 'BIEN_TAN'
+                      ? extBaoGiaTronGoi.formatCongSuatTong(
+                          vt.fieldValue('cong_suat'),
+                          item.soLuong,
+                        )
+                      : '',
+
+                  khoiLuong: '${vt.fieldValue('khoi_luong')} kg',
+                  baoHanh: item.thoiGianBaoHanh > 0
+                      ? TronGoiUtils.convertMonthToYearAndMonth(
+                          item.thoiGianBaoHanh,
+                        )
+                      : '',
                   priceText: TronGoiUtils.formatMoney(lineTotal),
                   quantity: item.soLuong.toInt(),
                   onIncrease: () {
@@ -256,15 +284,29 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                 final vt = item.vatTu;
 
                 final num lineTotal = item.gia * item.soLuong;
+                final String congSuatLabel = vt.nhomVatTu.ma == 'PIN_LUU_TRU'
+                    ? 'Lưu trữ:'
+                    : 'Công suất:';
 
                 return SolarMaxCartCard(
                   imageUrl: vt.mainImageUrl,
                   title: vt.ten,
                   modeTag: widget.selectedType ?? '',
-                  congSuat: vt.fieldValue('dung_luong'),
-                  chiSoIp: '',
-                  khoiLuong: vt.fieldValue('khoi_luong'),
-                  baoHanh: item.gm > 0 ? '${item.gm} tháng' : '',
+                  congSuatLabel: congSuatLabel,
+
+                  congSuat: vt.nhomVatTu.ma == 'PIN_LUU_TRU'
+                      ? extBaoGiaTronGoi.formatCongSuatTong(
+                          vt.fieldValue('dung_luong'),
+                          item.soLuong,
+                        )
+                      : '',
+
+                  khoiLuong: '${vt.fieldValue('khoi_luong')} kg',
+                  baoHanh: item.thoiGianBaoHanh > 0
+                      ? TronGoiUtils.convertMonthToYearAndMonth(
+                          item.thoiGianBaoHanh,
+                        )
+                      : '',
                   priceText: TronGoiUtils.formatMoney(lineTotal),
                   quantity: item.soLuong.toInt(),
                   onIncrease: () {
@@ -331,7 +373,7 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
               curve: Curves.easeInOut,
               child: _apMai
                   ? const SizedBox.shrink()
-                  :  Padding(
+                  : Padding(
                       padding: EdgeInsets.only(top: 4),
                       child: _GiaKhungSatFrame(
                         onGiaBanChanged: (value) {
@@ -407,7 +449,6 @@ class _GiaKhungSatFrame extends StatelessWidget {
   }
 }
 
-
 class _LabeledField extends StatelessWidget {
   final String label;
   final String hint;
@@ -453,4 +494,3 @@ class _LabeledField extends StatelessWidget {
     );
   }
 }
-

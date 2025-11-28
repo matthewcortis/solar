@@ -16,7 +16,7 @@ class DanhMucScreen extends StatefulWidget {
     this.selectedPhase,
     required this.tronGoi,
     required this.comboId,
-     this.onTotalChanged,
+    this.onTotalChanged,
   });
 
   @override
@@ -26,6 +26,12 @@ class DanhMucScreen extends StatefulWidget {
 class _DanhMucScreenState extends State<DanhMucScreen> {
   late final List<VatTuTronGoiDto> _otherMaterials;
 
+  /// Tổng từ DanhMucThietBiVaVatTu (thiết bị chính + khung sắt + phần cố định)
+  num _mainTotal = 0;
+
+  /// Delta vật tư phụ so với ban đầu (từ ClassVatTuPhu)
+  num _otherDelta = 0;
+
   @override
   void initState() {
     super.initState();
@@ -34,16 +40,40 @@ class _DanhMucScreenState extends State<DanhMucScreen> {
 
     final allItems = widget.tronGoi.vatTuTronGois;
 
-    // Vật tư phụ: vatTuChinh = false, và được phép xem (duocXem == null hoặc true)
-    _otherMaterials = allItems
-        .where(
-          (e) =>
-              e.vatTu.nhomVatTu.vatTuChinh == false &&
-              (e.duocXem ?? true),
-        )
-        .toList();
+    const order = <String, int>{
+      'PIN_LUU_TRU': 0,
+      'HE_KHUNG_NHOM': 1,
+      'HE_DAY_DIEN': 2,
+      'TU_DIEN': 3,
+      'HE_TIEP_DIA': 4,
+      'TRON_GOI_LAP_DAT': 5,
+    };
 
-    print('Other materials (phụ) = ${_otherMaterials.length}');
+    _otherMaterials = allItems.where((e) {
+      final ma = e.vatTu.nhomVatTu.ma;
+      final isGroup = order.containsKey(ma);
+      final bool isMain = e.vatTu.nhomVatTu.vatTuChinh;
+
+      return isGroup && !isMain;
+    }).toList();
+
+    _otherMaterials.sort((a, b) {
+      final orderA = a.vatTu.nhomVatTu.ma;
+      final orderB = b.vatTu.nhomVatTu.ma;
+
+      final idxA = order[orderA] ?? 999;
+      final idxB = order[orderB] ?? 999;
+      return idxA.compareTo(idxB);
+    });
+  }
+
+  void _notifyParentTotal() {
+    // Nếu _mainTotal chưa được set, dùng tronGoi.tongGia làm base
+    final num baseMain =
+        _mainTotal == 0 ? widget.tronGoi.tongGia : _mainTotal;
+
+    final num total = baseMain + _otherDelta;
+    widget.onTotalChanged?.call(total);
   }
 
   @override
@@ -58,12 +88,19 @@ class _DanhMucScreenState extends State<DanhMucScreen> {
               selectedType: widget.selectedType,
               selectedPhase: widget.selectedPhase,
               tronGoi: widget.tronGoi,
-              onTotalChanged: widget.onTotalChanged,
+              onTotalChanged: (value) {
+                setState(() => _mainTotal = value);
+                _notifyParentTotal();
+              },
             ),
 
             // Vật tư phụ
             ClassVatTuPhu(
               materials: _otherMaterials,
+              onDeltaChange: (delta) {
+                setState(() => _otherDelta = delta);
+                _notifyParentTotal();
+              },
             ),
           ],
         ),
