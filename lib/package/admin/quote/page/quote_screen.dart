@@ -4,7 +4,8 @@ import '../widgets/quote/step_progress.dart';
 import './combo_selection_fragment.dart';
 import './equipment_selection_fragment.dart'; // chứa DanhMucScreen
 import '../../../model/tron_goi_models.dart';
-
+import '../../../product/page/bao_gia_screen.dart';
+import '../widgets/bottomsheet/confim_dialog.dart';
 class TaoBaoGiaScreen extends StatefulWidget {
   const TaoBaoGiaScreen({super.key});
 
@@ -110,11 +111,42 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
     }
   }
 
-  void _submitQuote() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Đã tạo báo giá')));
+  Future<void> _submitQuote() async {
+  if (_selectedProduct == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Chưa chọn combo cụ thể')),
+    );
+    return;
   }
+
+  // Hiển thị dialog CustomConfirmDialog và đợi kết quả
+  final bool? confirmed = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false, // không cho tắt dialog khi tap ra ngoài
+    builder: (ctx) {
+      return CustomConfirmDialog(onConfirm: () {
+        Navigator.of(ctx).pop(true);   // báo về confirm
+      }, onCancel: () {
+        Navigator.of(ctx).pop(false);  // báo về cancel
+      });
+    },
+  );
+
+  // Nếu không xác nhận → dừng
+  if (confirmed != true) return;
+
+  // Tiếp tục sang màn báo giá
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => const ThongTinBaoGiaScreen(),
+      settings: RouteSettings(
+        arguments: _selectedProduct, // truyền TronGoiDto đã chọn
+      ),
+    ),
+  );
+}
+
+
 
   void _handleBack() {
     if (_step > 1) {
