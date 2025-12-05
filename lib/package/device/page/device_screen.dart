@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../model/category.dart';
-import '../repository/vat_tu_repository.dart';
+import '../repository/load_all_category.dart';
 import '../widgets/device_widgets.dart';
 import '../page/all_device_screen.dart';
-import '../model/product_device_model.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
+import '../../model/tron_goi_models.dart'; // VatTuDto
+
 class DeviceListScreen extends StatefulWidget {
   const DeviceListScreen({super.key});
 
@@ -18,7 +21,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   bool _showAllProducts = false;
   String _currentTitle = '';
-  List<ProductDeviceModel> _currentProducts = [];
+  List<VatTuDto> _currentProducts = [];
 
   @override
   void initState() {
@@ -28,8 +31,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     futureCategory3 = loadCategoryById(3);
   }
 
-
-  void _openAllProducts(String title, List<ProductDeviceModel> products) {
+  void _openAllProducts(String title, List<VatTuDto> products) {
     setState(() {
       _showAllProducts = true;
       _currentTitle = title;
@@ -50,26 +52,26 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
 
-   
     if (_showAllProducts) {
       return AllProductDeviceScreen(
         title: _currentTitle,
-        products: _currentProducts,
+        products: _currentProducts, // List<VatTuDto>
         onBack: _goBack,
       );
     }
-
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: scale(0), vertical: scale(24)),
+            padding: EdgeInsets.symmetric(
+              horizontal: scale(0),
+              vertical: scale(24),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // ---------------- Header ----------------
                 Text(
                   'Danh sách thiết bị',
                   textAlign: TextAlign.center,
@@ -92,7 +94,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                     }
                     return DeviceWidgetSection(
                       category: snapshot.data!,
-                      onShowAll: _openAllProducts,
+                      onShowAll: _openAllProducts, // (String, List<VatTuDto>)
                     );
                   },
                 ),
@@ -118,7 +120,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                   future: futureCategory3,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
+                      return _buildShimmerSection(scale);
                     }
                     return DeviceWidgetSection(
                       category: snapshot.data!,
@@ -130,6 +132,47 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerSection(double Function(double) scale) {
+    return Shimmer(
+      duration: const Duration(milliseconds: 1200),
+      interval: const Duration(milliseconds: 400),
+      color: Colors.grey.shade300,
+      colorOpacity: 0.4,
+      enabled: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(width: scale(200), height: scale(18), color: Colors.white),
+          SizedBox(height: scale(12)),
+          Container(width: scale(120), height: scale(26), color: Colors.white),
+          SizedBox(height: scale(12)),
+
+          // SỬA Ở ĐÂY
+          SizedBox(
+            height: scale(260),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List.generate(
+                  3,
+                  (i) => Container(
+                    margin: EdgeInsets.only(right: scale(12)),
+                    width: scale(220),
+                    height: scale(260),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(scale(20)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

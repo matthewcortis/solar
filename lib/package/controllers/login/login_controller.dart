@@ -56,6 +56,7 @@ class LoginController extends ChangeNotifier {
           branchCode: branchCode,
           officeAddress: officeAddress,
           warehouseAddress: warehouseAddress,
+          sdt: sdt,
         );
 
         isLoading = false;

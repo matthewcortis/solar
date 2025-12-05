@@ -73,20 +73,6 @@ class DetailProduct extends StatelessWidget {
               )
               .toList();
 
-          print('==============================');
-          print(' DETAIL COMBO ID = $comboId');
-          print(' tronGoi.id = ${tronGoi.id}');
-          print(' tronGoi.co so = ${tronGoi.coSo.id}');
-          print(' tronGoi.ten = ${tronGoi.ten}');
-          print(' tronGoi.taoLuc = ${tronGoi.taoLuc}');
-          print(' tronGoi.tongGia = ${tronGoi.tongGia}');
-          print(' tronGoi.tepTin.duongDan = ${tronGoi.tepTin.duongDan}');
-          print(' mainDeviceProducts.length = ${deviceProducts.length}');
-          print(' otherMaterials.length = ${otherMaterials.length}');
-          print(' sanLuongToiThieu = ${tronGoi.sanLuongToiThieu}');
-          print(' sanLuongToiDa = ${tronGoi.sanLuongToiDa}');
-          print(' congSuatHeThong = ${tronGoi.congSuatHeThong}');
-          print('==============================');
           final vatTuTronGois = tronGoi.vatTuTronGois;
           final String priceText = AppUtils.formatVNDNUM(tronGoi.tongGia);
 
@@ -112,6 +98,14 @@ class DetailProduct extends StatelessWidget {
               '${TronGoiUtils.formatCongSuatHeThong(tronGoi.sanLuongToiThieu)}'
               ' - ${TronGoiUtils.formatCongSuatHeThong(tronGoi.sanLuongToiDa)} kWh/tháng';
 
+          final String thuong_hieu_tam_pin =
+              tronGoi.nhomTronGoi.thuongHieuTamPin.ten;
+
+          final String thuong_hieu_bien_tan =
+              tronGoi.nhomTronGoi.thuongHieuInverter.ten;
+
+          final String thuong_hieu_luu_tru =
+              tronGoi.nhomTronGoi.thuongHieuPinLuuTru.ten;
           // 2) Số tháng hoàn vốn
           final double sanLuongTB =
               tronGoi.sanLuongToiThieu / 2 + tronGoi.sanLuongToiDa / 2;
@@ -144,18 +138,18 @@ class DetailProduct extends StatelessWidget {
             'HE_TIEP_DIA',
             'Hệ tiếp địa',
           );
-          final tronGoiLapDat = groupVatTuByNhom(
-            otherMaterials,
-            'TRON_GOI_LAP_DAT',
-            'Trọn gói lắp đặt',
-          );
+          // final tronGoiLapDat = groupVatTuByNhom(
+          //   otherMaterials,
+          //   'TRON_GOI_LAP_DAT',
+          //   'Trọn gói lắp đặt',
+          // );
 
           final List<VatTuGroupResult> groupedMaterials = [
             khungNhom,
             dayDien,
             tuDien,
             tiepDia,
-            tronGoiLapDat,
+            // tronGoiLapDat,
           ];
 
           return Stack(
@@ -185,7 +179,10 @@ class DetailProduct extends StatelessWidget {
                       luuTru: luuTruText,
                       sanLuong: sanLuongText,
                       hoanVon: showingTime,
-                      dienTich: dienTichText,
+                      dienTich: dienTichText, 
+                      thuongHieuTamPin: thuong_hieu_tam_pin,
+                      thuongHieuBienTan: thuong_hieu_bien_tan,
+                      thuongHieuLuuTru: thuong_hieu_luu_tru,
                     ),
 
                     const SizedBox(height: 10),
@@ -196,7 +193,10 @@ class DetailProduct extends StatelessWidget {
                     const SizedBox(height: 10),
 
                     // Vật tư khác
-                    OtherMaterialsSection(groups: groupedMaterials),
+                    OtherMaterialsSection(
+                      groups: groupedMaterials,
+                      mainDevices: deviceProducts,
+                    ),
                   ],
                 ),
               ),

@@ -27,16 +27,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (_didInit) return;
 
     final args = ModalRoute.of(context)?.settings.arguments;
+
+    // 1) Nếu truyền thẳng id (int hoặc String) -> gọi API
     int? productId;
     if (args is int) {
       productId = args;
     } else if (args is String) {
       productId = int.tryParse(args);
     }
+    // 2) Nếu truyền thẳng VatTuDto -> dùng luôn, không gọi API nữa
+    else if (args is VatTuDto) {
+      _product = args;
+      _isLoading = false;
+      _didInit = true;
+      setState(() {});
+      return;
+    }
+    // 3) Nếu truyền VatTuTronGoiDto -> lấy ra vatTu bên trong
+    else if (args is VatTuTronGoiDto) {
+      _product = args.vatTu;
+      _isLoading = false;
+      _didInit = true;
+      setState(() {});
+      return;
+    }
 
     if (productId == null) {
       setState(() {
-        _error = "Không nhận được ID sản phẩm";
+        _error = "Không nhận được ID / dữ liệu sản phẩm";
         _isLoading = false;
       });
     } else {
@@ -72,17 +90,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  /// Lấy link datasheet từ duLieuRieng (tuỳ key backend)
   String? _getSheetLink(VatTuDto p) {
-    // Điều chỉnh key cho đúng với backend, ví dụ: 'datasheet', 'sheet_link', ...
-    final ds1 = p.duLieuRieng['datasheet'];
-    if (ds1 != null && ds1.giaTri != null && ds1.giaTri.toString().isNotEmpty) {
-      return ds1.giaTri.toString();
+    // 1) Field sheetLink trực tiếp
+    if (p.sheetLink.isNotEmpty) {
+      return p.sheetLink;
     }
-    final ds2 = p.duLieuRieng['sheetLink'];
-    if (ds2 != null && ds2.giaTri != null && ds2.giaTri.toString().isNotEmpty) {
-      return ds2.giaTri.toString();
+
+    // 2) Nếu backend để trong duLieuRieng['sheetLink']
+    final item = p.duLieuRieng['sheetLink'];
+    if (item != null &&
+        item.giaTri != null &&
+        item.giaTri.toString().isNotEmpty) {
+      return item.giaTri.toString();
     }
+
     return null;
   }
 
@@ -121,39 +142,84 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final group = p.thongTinGias.first; // Thông tin giá đầu tiên
     if (group.dsGia.isEmpty) return null;
 
-    // Bạn có thể chọn cơ sở mặc định ở đây, ví dụ cơ sở đầu tiên:
+    // Cơ sở mặc định là phần tử đầu tiên
     return group.dsGia.first;
   }
 
   /// Lấy thuộc tính từ duLieuRieng, có thể thêm suffix đơn vị
-  String _getAttr(VatTuDto p, String key, {String? suffix}) {
-    final item = p.duLieuRieng[key];
-    if (item == null || item.giaTri == null) return 'Đang cập nhật';
-    final value = item.giaTri.toString();
-    // Nếu backend đã lưu đơn vị trong item.donVi thì có thể dùng luôn:
-    if (item.donVi.isNotEmpty) {
-      return '$value ${item.donVi}';
+  /// Lấy thuộc tính từ duLieuRieng, có thể thêm suffix đơn vị
+  /// Ưu tiên duLieuRieng, nếu không có thì fallback sang nhomVatTu.thuocTinhRieng
+  String _getAttr(VatTuDto vatTu, String key, {String? suffix}) {
+    // 1) Ưu tiên dữ liệu theo từng vật tư (duLieuRieng)
+    ThuocTinh? tt = vatTu.duLieuRieng[key];
+
+    // Nếu không có hoặc giaTri null/chuỗi rỗng -> thử fallback sang nhóm vật tư
+    bool _isEmpty(dynamic v) =>
+        v == null ||
+        (v is String && v.trim().isEmpty) ||
+        v.toString() == '0'; // tuỳ bạn, có thể bỏ check '0' nếu muốn hiển thị 0
+
+    if (tt == null || _isEmpty(tt.giaTri)) {
+      tt = vatTu.nhomVatTu.thuocTinhRieng[key];
     }
-    if (suffix != null && suffix.isNotEmpty) {
-      return '$value $suffix';
+
+    if (tt == null || _isEmpty(tt.giaTri)) {
+      return 'Đang cập nhật';
+    }
+
+    final value = tt.giaTri.toString();
+
+    // Ưu tiên donVi từ backend, nếu rỗng thì dùng suffix (nếu có)
+    final unit = tt.donVi.isNotEmpty ? tt.donVi : (suffix ?? '');
+
+    if (unit.isNotEmpty) {
+      return '$value $unit';
     }
     return value;
   }
 
   List<SpecItem> _buildSpecs(VatTuDto p) {
+    final groupCode = p.nhomVatTu.ma;
+    final rawDungLuong = p.duLieuRieng['dung_luong']?.giaTri;
+    final formattedDungLuong = (rawDungLuong is num)
+        ? rawDungLuong.toStringAsFixed(1)
+        : _getAttr(p, 'dung_luong');
+    if (groupCode == 'PIN_LUU_TRU') {
+      return [
+        SpecItem("1. Dung lượng:", "$formattedDungLuong kWh"),
+        SpecItem("2. Thương hiệu:", p.thuongHieu.tenQuocTe),
+        SpecItem("3. Khối lượng:", _getAttr(p, 'khoi_luong', suffix: 'kg')),
+        SpecItem("4. Kích thước:", _getAttr(p, 'kich_thuoc')),
+        SpecItem("5. Cách lắp đặt:", _getAttr(p, 'cach_lap_dat')),
+        SpecItem("7. Bảo hành:", TronGoiUtils.convertMonthToYearAndMonth(p.thoiGianBaoHanh)),
+      ];
+    }
+
+    // ----- CASE BIẾN TẦN -----
+    if (groupCode == 'BIEN_TAN') {
+      return [
+        SpecItem("1. Công suất:", _getAttr(p, 'cong_suat', suffix: 'kW')),
+        SpecItem("2. Thương hiệu:", p.thuongHieu.tenQuocTe),
+        SpecItem("3. Số pha:", _getAttr(p, 'so_pha')),
+        SpecItem("4. Phân loại:", _getAttr(p, 'phan_loai')),
+        SpecItem("5. Khối lượng:", _getAttr(p, 'khoi_luong', suffix: 'kg')),
+        SpecItem("6. Kích thước:", _getAttr(p, 'kich_thuoc')),
+        SpecItem("7. Bảo hành:", TronGoiUtils.convertMonthToYearAndMonth(p.thoiGianBaoHanh)),
+      ];
+    }
+
+    // ----- DEFAULT (TẤM PIN, v.v...) -----
     return [
-      // Các key 'congNghe', 'congSuat', 'khoiLuong', 'kichThuoc', 'hieuSuat'
-      // cần trùng với backend của bạn.
-      SpecItem("1. Công nghệ:", _getAttr(p, 'congNghe')),
+      SpecItem("1. Công nghệ:", _getAttr(p, 'cong_nghe')),
       SpecItem("2. Thương hiệu:", p.thuongHieu.tenQuocTe),
-      SpecItem("3. Công suất:", _getAttr(p, 'congSuat', suffix: 'Wp')),
-      SpecItem("4. Khối lượng:", _getAttr(p, 'khoiLuong', suffix: 'kg')),
-      SpecItem("5. Kích thước:", _getAttr(p, 'kichThuoc')),
+      SpecItem("3. Công suất:", _getAttr(p, 'cong_suat', suffix: 'Wp')),
+      SpecItem("4. Khối lượng:", _getAttr(p, 'khoi_luong', suffix: 'kg')),
+      SpecItem("5. Kích thước:", _getAttr(p, 'kich_thuoc')),
       SpecItem(
         "6. Hiệu suất chuyển đổi:",
-        _getAttr(p, 'hieuSuat', suffix: '%'),
+        _getAttr(p, 'hieu_suat', suffix: '%'),
       ),
-      SpecItem("7. Bảo hành:", "12 năm vật lý, 25 năm hiệu suất"),
+      SpecItem("7. Bảo hành:", TronGoiUtils.convertMonthToYearAndMonth(p.thoiGianBaoHanh)),
     ];
   }
 
@@ -259,7 +325,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
-                            // Nếu sau này có nhiều ảnh, bạn có thể thay bằng "${index+1}/${total} ảnh"
                             '1/1 ảnh',
                             style: TextStyle(
                               fontFamily: 'SFProDisplay',

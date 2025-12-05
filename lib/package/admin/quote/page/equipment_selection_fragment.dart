@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/equipment/equipment_selection.dart';
 import '../widgets/equipment/equipment_list.dart';
 import '../../../model/tron_goi_models.dart';
+import '../../../model/bao_gia_draft.dart';
 
 class DanhMucScreen extends StatefulWidget {
   final String? selectedType;
@@ -9,6 +10,7 @@ class DanhMucScreen extends StatefulWidget {
   final TronGoiDto tronGoi;
   final int comboId;
   final ValueChanged<num>? onTotalChanged;
+  final ValueChanged<BaoGiaDraft>? onDraftChanged;
 
   const DanhMucScreen({
     super.key,
@@ -17,6 +19,7 @@ class DanhMucScreen extends StatefulWidget {
     required this.tronGoi,
     required this.comboId,
     this.onTotalChanged,
+    this.onDraftChanged,
   });
 
   @override
@@ -26,11 +29,12 @@ class DanhMucScreen extends StatefulWidget {
 class _DanhMucScreenState extends State<DanhMucScreen> {
   late final List<VatTuTronGoiDto> _otherMaterials;
 
-  /// Tổng từ DanhMucThietBiVaVatTu (thiết bị chính + khung sắt + phần cố định)
   num _mainTotal = 0;
-
-  /// Delta vật tư phụ so với ban đầu (từ ClassVatTuPhu)
   num _otherDelta = 0;
+  List<VatTuTronGoiDto> _currentMainDevices = [];
+  List<VatTuTronGoiDto> _currentOtherMaterials = [];
+  num _giaBanKhungSat = 0;
+  num _giaNhanCongKhungSat = 0;
 
   @override
   void initState() {
@@ -67,14 +71,32 @@ class _DanhMucScreenState extends State<DanhMucScreen> {
     });
   }
 
-  void _notifyParentTotal() {
-    // Nếu _mainTotal chưa được set, dùng tronGoi.tongGia làm base
-    final num baseMain =
-        _mainTotal == 0 ? widget.tronGoi.tongGia : _mainTotal;
-
+  void _rebuildDraft() {
+    final num baseMain = _mainTotal == 0 ? widget.tronGoi.tongGia : _mainTotal;
     final num total = baseMain + _otherDelta;
+
     widget.onTotalChanged?.call(total);
+
+    if (widget.onDraftChanged != null) {
+      final draft = BaoGiaDraft(
+        tronGoi: widget.tronGoi,
+        mainDevices: _currentMainDevices,
+        extraMaterials: _currentOtherMaterials,
+        giaBanKhungSat: _giaBanKhungSat,
+        giaNhanCongKhungSat: _giaNhanCongKhungSat,
+        tongTien: total,
+      );
+      widget.onDraftChanged!(draft);
+    }
   }
+
+  // void _notifyParentTotal() {
+  //   // Nếu _mainTotal chưa được set, dùng tronGoi.tongGia làm base
+  //   final num baseMain = _mainTotal == 0 ? widget.tronGoi.tongGia : _mainTotal;
+
+  //   final num total = baseMain + _otherDelta;
+  //   widget.onTotalChanged?.call(total);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -90,18 +112,35 @@ class _DanhMucScreenState extends State<DanhMucScreen> {
               tronGoi: widget.tronGoi,
               onTotalChanged: (value) {
                 setState(() => _mainTotal = value);
-                _notifyParentTotal();
+                _rebuildDraft();
+              },
+              onMainDevicesChanged: (devices) {
+                setState(() => _currentMainDevices = devices);
+                _rebuildDraft();
+              },
+              onGiaBanKhungSatChanged: (v) {
+                setState(() => _giaBanKhungSat = v);
+                _rebuildDraft();
+              },
+              onGiaNhanCongKhungSatChanged: (v) {
+                setState(() => _giaNhanCongKhungSat = v);
+                _rebuildDraft();
               },
             ),
 
-            // Vật tư phụ
             ClassVatTuPhu(
               materials: _otherMaterials,
               onDeltaChange: (delta) {
                 setState(() => _otherDelta = delta);
-                _notifyParentTotal();
+                _rebuildDraft();
+              },
+              onMaterialsChanged: (materials) {
+                setState(() => _currentOtherMaterials = materials);
+                _rebuildDraft();
               },
             ),
+
+        
           ],
         ),
       ),

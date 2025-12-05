@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/equipment/card_item_product_hy_on.dart';
@@ -22,7 +21,7 @@ class ComboSelectionFragment extends StatefulWidget {
 class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
   final _repo = NhomTronGoiRepository();
   late Future<List<NhomTronGoiDto>> _futureCombos;
- 
+
   NhomTronGoiDto? selectedCombo;
 
   @override
@@ -92,7 +91,6 @@ class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
         ),
         const SizedBox(height: 16),
 
-        // PHẦN GRIDVIEW GIỮ NGUYÊN GIAO DIỆN, CHỈ THAY DATA
         Expanded(
           child: FutureBuilder<List<NhomTronGoiDto>>(
             future: _futureCombos,
@@ -105,10 +103,7 @@ class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
                 return const Center(
                   child: Text(
                     'Lỗi tải dữ liệu nhóm trọn gói',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.red),
                   ),
                 );
               }
@@ -118,10 +113,7 @@ class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
                 return const Center(
                   child: Text(
                     'Không có nhóm trọn gói',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF828282),
-                    ),
+                    style: TextStyle(fontSize: 14, color: Color(0xFF828282)),
                   ),
                 );
               }
@@ -157,7 +149,7 @@ class _ComboSelectionFragmentState extends State<ComboSelectionFragment> {
     );
   }
 }
-// Card như bạn đã có
+
 class SelectableBrandCard extends StatelessWidget {
   const SelectableBrandCard({
     super.key,
@@ -181,11 +173,11 @@ class SelectableBrandCard extends StatelessWidget {
     return Container(
       width: 191,
       height: 110,
-      padding: const EdgeInsets.all(16), // => content width 191-32 = 159
+      padding: const EdgeInsets.all(16), 
       decoration: BoxDecoration(
-        color: selected ? gray100 : white,
+        color: white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: selected ? green100 : gray100, width: 1),
+        border: Border.all(color: selected ? green500 : gray100, width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x26D1D1D1),
@@ -247,16 +239,11 @@ class SelectableBrandCard extends StatelessWidget {
 }
 
 class _IconRadioRow extends StatelessWidget {
-  const _IconRadioRow({super.key})
-    : _selected = null,
-      _iconPath = null;
+  const _IconRadioRow() : _selected = null, _iconPath = null;
 
-  const _IconRadioRow.explicit({
-    super.key,
-    required bool selected,
-    String? iconPath,
-  }) : _selected = selected,
-       _iconPath = iconPath;
+  const _IconRadioRow.explicit({required bool selected, String? iconPath})
+    : _selected = selected,
+      _iconPath = iconPath;
 
   final bool? _selected;
   final String? _iconPath;
@@ -282,9 +269,7 @@ class _IconRadioRow extends StatelessWidget {
           width: 24,
           height: 24,
           decoration: BoxDecoration(
-            color: selected
-                ? const Color.fromARGB(255, 242, 250, 243)
-                : const Color.fromARGB(255, 255, 255, 255),
+            color: Colors.white, // giữ trắng, không đổi màu nền card
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
@@ -396,7 +381,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: Column(
         children: [
           // --- Header ---
-       
 
           // --- Tabs ---
           Padding(
@@ -423,69 +407,61 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? Center(
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.red,
-                          ),
+                ? Center(
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(fontSize: 14, color: Colors.red),
+                    ),
+                  )
+                : list.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Không có trọn gói nào',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF828282)),
+                    ),
+                  )
+                : GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // 2 cột
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: 202 / 355,
                         ),
-                      )
-                    : list.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Không có trọn gói nào',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF828282),
-                              ),
-                            ),
-                          )
-                        : GridView.builder(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2, // 2 cột
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                              childAspectRatio: 202 / 355,
-                            ),
-                            itemCount: list.length,
-                            itemBuilder: (context, index) {
-                              final tronGoi = list[index];
-                              final bool isSelected = selectedIndex == index;
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      final tronGoi = list[index];
+                      final bool isSelected = selectedIndex == index;
 
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    if (selectedIndex == index) {
-                                      selectedIndex = null; // bỏ chọn
-                                    } else {
-                                      selectedIndex = index; // chọn mới
-                                    }
-                                  });
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (selectedIndex == index) {
+                              selectedIndex = null; // bỏ chọn
+                            } else {
+                              selectedIndex = index; // chọn mới
+                            }
+                          });
 
-                                  TronGoiDto? selectedProduct;
-                                  if (selectedIndex != null) {
-                                    selectedProduct = list[selectedIndex!];
-                                  } else {
-                                    selectedProduct = null;
-                                  }
+                          TronGoiDto? selectedProduct;
+                          if (selectedIndex != null) {
+                            selectedProduct = list[selectedIndex!];
+                          } else {
+                            selectedProduct = null;
+                          }
 
-                                  widget.onProductSelected
-                                      ?.call(selectedProduct);
-                                },
-                                child: ProductItemCard(
-                                  combo: tronGoi,
-                                  // nếu ProductItemCard chưa có isSelected,
-                                  // thêm tham số này vào widget để tô viền / đổi màu
-                                  isSelected: isSelected,
-                                ),
-                              );
-                            },
-                          ),
+                          widget.onProductSelected?.call(selectedProduct);
+                        },
+                        child: ProductItemCard(
+                          combo: tronGoi,
+                          // nếu ProductItemCard chưa có isSelected,
+                          // thêm tham số này vào widget để tô viền / đổi màu
+                          isSelected: isSelected,
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -501,7 +477,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (isHybridSelected != isHybrid) {
             setState(() {
               isHybridSelected = isHybrid;
-              selectedIndex = null; 
+              selectedIndex = null;
             });
             _notifyType();
             widget.onProductSelected?.call(null);

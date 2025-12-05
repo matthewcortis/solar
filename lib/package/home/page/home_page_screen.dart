@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
+
 import '../../home/services/product_category_model.dart';
 import '../services/load_product.dart';
+
 import '../widgets/app_bar_home.dart';
+// Nếu SolarHeaderFullCard nằm ở file khác, bạn nhớ import đúng file đó.
+// import '../widgets/solar_header_full_card.dart';
+import './customer_screen.dart';
 import '../widgets/list_product.dart';
 import '../widgets/warranty_price.dart';
 import '../widgets/bank_contract_info.dart';
+
 import '../../controllers/login/auth_storage.dart';
+
 import '../repository/hot_combo_repo.dart';
-import '../../news/pages/news_screen.dart';
-import './customer_screen.dart';
 import '../repository/hop_dong_repo.dart';
 import '../repository/khach_hang_repo.dart';
+
+import '../../news/pages/news_screen.dart';
+
 import '../../model/hop_dong_model.dart';
-import '../../utils/app_utils.dart';
 import '../../model/tron_goi_models.dart';
+
+import '../../utils/app_utils.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,16 +32,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Sản phẩm
   late final Future<ProductCategoryModel> _futureProducts;
 
+  // Hợp đồng giới thiệu (cho admin / sale / agent)
   final HopDongRepository _hopDongRepository = HopDongRepository();
   late Future<List<HopDongModel>> _futureHopDong;
 
-  late final Future<List<TronGoiDto>> _futureBestSeller;
-  final TronGoiRepository _tronGoiRepository = TronGoiRepository();
+  // Hợp đồng của chính user đăng nhập (cho customer)
+  final HopDongCuaToiRepository _repoHopDong = HopDongCuaToiRepository();
+  late Future<List<HopDongModel>> _futureHopDongCuaToi;
 
+  // Combo bán chạy
+  final TronGoiRepository _tronGoiRepository = TronGoiRepository();
+  late final Future<List<TronGoiDto>> _futureBestSeller;
+
+  // Khách hàng
   final repo = KhachHangRepository();
 
+  // Thông tin auth
   String userRole = 'guest';
   String? bankNameFromAuth;
   String? bankAccountFromAuth;
@@ -45,7 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _futureProducts = loadAllProducts();
     _futureBestSeller = _tronGoiRepository.getDanhSachBanChay();
-    _futureHopDong = _hopDongRepository.getHopDongCuaUserDangNhap();
+
+    _futureHopDong = _hopDongRepository.getHopDongGioiThieu();
+    _futureHopDongCuaToi = _repoHopDong.getHopDongCuaUserDangNhap();
 
     _loadRole();
     _loadBankInfo();
@@ -55,9 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final role = await AuthStorage.getRole();
     debugPrint('HomeScreen _loadRole -> $role');
     setState(() {
-    userRole = role ?? 'guest';
-  });
-
+      userRole = role ?? 'guest';
+    });
   }
 
   Future<void> _loadBankInfo() async {
@@ -96,29 +116,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 14),
 
+                  // ================== PHÂN QUYỀN THEO ROLE ==================
                   if (userRole == "guest") ...[
                     const SizedBox.shrink(),
                   ] else if (userRole == "customer") ...[
                     FutureBuilder<List<HopDongModel>>(
-                      future: _futureHopDong,
+                      future: _futureHopDongCuaToi,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
+                          return const ContractValueCardShimmer();
                         }
 
                         if (snapshot.hasError) {
-                          debugPrint('Lỗi tải hợp đồng: ${snapshot.error}');
+                          debugPrint(
+                            'Lỗi tải hợp đồng (của tôi): ${snapshot.error}',
+                          );
                         }
 
                         final list = snapshot.data ?? [];
+                        HopDongModel? hopDong = list.isNotEmpty
+                            ? list.first
+                            : null;
 
-                        HopDongModel? hopDong;
-                        if (list.isNotEmpty) {
-                          hopDong = list.first;
-                        }
                         String handoverDateText = '';
                         double tongGia = 0;
                         if (hopDong != null) {
@@ -128,80 +148,91 @@ class _HomeScreenState extends State<HomeScreen> {
                           tongGia = hopDong.tongGia ?? 0;
                         }
 
+                        if (hopDong == null) {
+                          return const SizedBox.shrink();
+                        }
+
                         return ContractValueCard(
-                          // Luôn truyền, có thể là '' và 0
                           deliveryDate: handoverDateText,
                           totalValue: AppUtils.currency(tongGia),
-                          // onView: () {
-                          //   // Nếu muốn: chỉ cho vào màn bảo hành khi có hợp đồng
-                          //   if (hopDong != null) {
-                          //     Navigator.of(
-                          //       context,
-                          //     ).pushNamed(AppRoutes.warrantyDeviceScreen);
-                          //   } else {
-                          //     // Không có hợp đồng mà vẫn bấm: tùy bạn xử lý
-                          //     // ví dụ: showSnackBar, dialog, hoặc không làm gì
-                          //   }
-                          // },
+                          onView: () {
+                            Navigator.of(
+                              context,
+                            ).pushNamed('/warranty', arguments: hopDong.id);
+                          },
                         );
                       },
                     ),
                   ] else if (userRole == "admin" ||
                       userRole == "sale" ||
                       userRole == "agent") ...[
-                    // ADMIN, SALE, AGENT: luôn hiển thị BankContractCard
-                    FutureBuilder<List<HopDongModel>>(
-                      future: _futureHopDong,
+                    FutureBuilder<List<dynamic>>(
+                      future: Future.wait([
+                        _futureHopDong, // [0] Hợp đồng giới thiệu
+                        _futureHopDongCuaToi, // [1] Hợp đồng của chính user
+                      ]),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
+                          return const BankContractCardShimmer();
                         }
+
                         if (snapshot.hasError) {
                           return Text('Lỗi tải hợp đồng: ${snapshot.error}');
                         }
 
-                        final list = snapshot.data ?? [];
+                        final results = snapshot.data;
+                        if (results == null || results.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
 
-                        // Có thể không có hợp đồng
-                        final HopDongModel? hopDong = list.isNotEmpty
-                            ? list.first
+                        // Ép kiểu 2 danh sách
+                        final List<HopDongModel> listGioiThieu =
+                            (results[0] as List<HopDongModel>?) ?? [];
+                        final List<HopDongModel> listCuaToi =
+                            (results[1] as List<HopDongModel>?) ?? [];
+
+                        final HopDongModel? hopDongGioiThieu =
+                            listGioiThieu.isNotEmpty
+                            ? listGioiThieu.first
                             : null;
+                        final HopDongModel? hopDongCuaToi =
+                            listCuaToi.isNotEmpty ? listCuaToi.first : null;
 
-                        // Có thể không có người giới thiệu
-                        final nguoi = hopDong?.nguoiGioiThieu;
+                        // Nếu không có hợp đồng giới thiệu thì không hiển thị card
+                        if (hopDongGioiThieu == null) {
+                          return const SizedBox.shrink();
+                        }
 
-                        // Ưu tiên lấy trong hợp đồng, nếu không có thì fallback sang dữ liệu login (AuthStorage)
+                        final nguoi = hopDongGioiThieu.nguoiGioiThieu;
+
+                        // Thông tin ngân hàng vẫn lấy từ người giới thiệu / Auth
                         final bankName =
                             (nguoi?.nganHang != null &&
-                                nguoi!.nganHang!.isNotEmpty)
+                                (nguoi!.nganHang!.isNotEmpty))
                             ? nguoi.nganHang!
                             : (bankNameFromAuth ?? '');
 
                         final accountNumber =
                             (nguoi?.maNganHang != null &&
-                                nguoi!.maNganHang!.isNotEmpty)
+                                (nguoi!.maNganHang!.isNotEmpty))
                             ? nguoi.maNganHang!
                             : (bankAccountFromAuth ?? '');
 
-                        // Nếu không có hợp đồng -> ngày, giá trị, khách hàng, hoa hồng = mặc định
-                        final handoverDateText = hopDong?.taoLuc != null
-                            ? AppUtils.date(hopDong!.taoLuc)
-                            : '';
+                        String handoverDateText = '';
 
-                        final tongGia = hopDong?.tongGia ?? 0;
-                        final phanTram = nguoi?.phanTramHoaHong ?? 0;
+                        if (hopDongCuaToi?.taoLuc != null) {
+                          handoverDateText = AppUtils.date(
+                            hopDongCuaToi!.taoLuc!,
+                          );
+                        }
 
-                        final totalContractValue = AppUtils.currency(
-                          tongGia * (phanTram / 100),
-                        );
+                        final double tongGia = hopDongCuaToi?.tongGia ?? 0;
 
-                        final customerCount = (nguoi?.khachHangs.length ?? 0)
-                            .toString();
+                        final String customerCount =
+                            (nguoi?.khachHangs.length ?? 0).toString();
 
-                        final totalCommission = AppUtils.currency(
+                        final String totalCommission = AppUtils.currency(
                           nguoi?.tongHoaHong ?? 0,
                         );
 
@@ -209,9 +240,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           bankName: bankName,
                           accountNumber: accountNumber,
                           handoverDateText: handoverDateText,
-                          totalContractValue: totalContractValue,
+                          totalContractValue: AppUtils.currency(tongGia),
                           customerCount: customerCount,
                           totalCommission: totalCommission,
+                          hopDongId: hopDongCuaToi?.id ?? 0,
                           onTapCustomerList: () {
                             Navigator.push(
                               context,
@@ -237,10 +269,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   FutureBuilder<List<TronGoiDto>>(
                     future: _futureBestSeller,
                     builder: (context, bestSnapshot) {
+                      // === LOADING → SHIMMER ===
                       if (bestSnapshot.connectionState ==
                           ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const ComboShimmerList();
                       }
+
+                      // === ERROR ===
                       if (bestSnapshot.hasError) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -250,6 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       }
 
+                      // === DATA ===
                       final bestSellers = bestSnapshot.data ?? [];
                       if (bestSellers.isEmpty) {
                         return const SizedBox.shrink();
@@ -263,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Tin tức
                   const NewsHomeHeader(),
-                  const NewsEmbeddedSection(height: 400,)
+                  const NewsEmbeddedSection(height: 400),
                 ],
               ),
             ),

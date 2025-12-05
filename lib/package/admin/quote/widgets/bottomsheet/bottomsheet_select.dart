@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
-import '../equipment/card_item_device.dart'; // import đúng path
+import '../equipment/card_item_device.dart';
+import '../../../../model/tron_goi_models.dart';
+import '../../../../model/extension.dart';
+import '../../../controller/tao_bao_gia.dart';
+import '../../../../device/repository/vat_tu_repository.dart'; // DeviceRepository
 
+/// Hiển thị danh sách VẬT TƯ (VatTuDto) theo nhóm:
+/// nhomMa: 'TAM_PIN' / 'BIEN_TAN' / 'PIN_LUU_TRU'
 void showSelectProductBottomSheet(
   BuildContext context, {
+  required String nhomMa,
   String? type, // Hy-Brid / On-grid
   String? phase, // '1' / '3'
   String? categoryLabel, // 'Tấm quang năng' / 'Biến tần'...
+  required ValueChanged<VatTuDto> onSelected,
 }) {
   final width = MediaQuery.of(context).size.width;
   double scale(double v) => v * width / 430;
 
-  // build list tag từ tham số truyền vào
   final tags = <String>['Tất cả'];
 
   if (type != null && type.isNotEmpty) {
@@ -22,9 +29,9 @@ void showSelectProductBottomSheet(
     tags.add(phaseLabel);
   }
 
-  if (categoryLabel != null && categoryLabel.isNotEmpty) {
-    tags.add(categoryLabel);
-  }
+  // if (categoryLabel != null && categoryLabel.isNotEmpty) {
+  //   tags.add(categoryLabel);
+  // }
 
   showModalBottomSheet(
     context: context,
@@ -40,6 +47,9 @@ void showSelectProductBottomSheet(
             scale: scale,
             scrollController: scrollController,
             tags: tags,
+            nhomMa: nhomMa,
+            type: type,
+            onSelected: onSelected,
           );
         },
       );
@@ -51,11 +61,17 @@ class _SelectProductSheetBody extends StatefulWidget {
   final double Function(double v) scale;
   final ScrollController scrollController;
   final List<String> tags;
+  final String nhomMa; // 'TAM_PIN' / 'BIEN_TAN' / 'PIN_LUU_TRU'
+  final String? type; // Hy-Brid / On-grid
+  final ValueChanged<VatTuDto> onSelected;
 
   const _SelectProductSheetBody({
     required this.scale,
     required this.scrollController,
     required this.tags,
+    required this.nhomMa,
+    required this.onSelected,
+    this.type,
   });
 
   @override
@@ -67,22 +83,59 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
   late List<String> _tags;
   int _selectedIndex = 0;
 
-  // Demo data – thay bằng list sản phẩm thật của bạn
-  final List<Map<String, String>> _products = List.generate(10, (_) {
-    return {
-      'title': 'Biến tần Solis 5kW',
-      'mode': 'Hy-Brid',
-      'congSuat': 'Công suất: 1 pha',
-      'ip': 'Chỉ số IP: IP66',
-      'khoiLuong': 'Khối lượng: 24 kg',
-      'baoHanh': 'Bảo hành: 05 năm',
-      'price': '12.000.000đ',
-    };
-  });
+  final _repo = DeviceRepository();
+  List<VatTuDto> _items = [];
+  bool _loading = true;
+  String? _error;
+
   @override
   void initState() {
     super.initState();
-    _tags = widget.tags; // <<< BẮT BUỘC PHẢI CÓ
+    _tags = widget.tags;
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      List<VatTuDto> list;
+      switch (widget.nhomMa) {
+        case 'TAM_PIN':
+          list = await _repo.getPanels();
+          break;
+        case 'BIEN_TAN':
+          list = await _repo.getInverters();
+          break;
+        case 'PIN_LUU_TRU':
+          list = await _repo.getBatteries();
+          break;
+        default:
+          list = []; // nếu thêm nhóm khác thì bổ sung sau
+      }
+
+      setState(() {
+        _items = list;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  num _getGiaBan(VatTuDto vt) {
+    if (vt.thongTinGias.isEmpty) return 0;
+
+    // Ưu tiên bản ghi giá đang active, nếu không có thì lấy cuối cùng
+    final ThongTinGiaDto giaDto = vt.thongTinGias.firstWhere(
+      (g) => g.trangThai == 1,
+      orElse: () => vt.thongTinGias.last,
+    );
+
+    if (giaDto.dsGia.isEmpty) return 0;
+    final GiaInfo giaInfo = giaDto.dsGia.first;
+    return giaInfo.giaBan ?? 0;
   }
 
   @override
@@ -103,7 +156,7 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Thanh kéo nhỏ trên đầu
+          // Thanh kéo
           Center(
             child: Container(
               width: scale(56),
@@ -116,7 +169,6 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
           ),
           SizedBox(height: scale(16)),
 
-          // Title
           Text(
             'Chọn sản phẩm',
             style: TextStyle(
@@ -128,7 +180,7 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
           ),
           SizedBox(height: scale(16)),
 
-          // Tag filter row
+          // Tag filter
           SizedBox(
             height: scale(32),
             child: ListView.separated(
@@ -140,7 +192,6 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
                 return GestureDetector(
                   onTap: () {
                     setState(() => _selectedIndex = index);
-                    // TODO: lọc list theo tag nếu cần
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(
@@ -149,9 +200,7 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
                     ),
                     decoration: BoxDecoration(
                       color: isActive
-                          ? const Color(
-                              0xFFFFE5E5,
-                            ) // giống tab “Tất cả” đỏ nhạt
+                          ? const Color(0xFFFFE5E5)
                           : const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -175,38 +224,86 @@ class _SelectProductSheetBodyState extends State<_SelectProductSheetBody> {
           ),
           SizedBox(height: scale(16)),
 
-          // List sản phẩm
-          // Expanded(
-          //   child: ListView.separated(
-          //     controller: widget.scrollController,
-          //     itemCount: _products.length,
-          //     separatorBuilder: (_, __) => SizedBox(height: scale(16)),
-          //     itemBuilder: (context, index) {
-          //       final p = _products[index];
-          //       return SolarMaxCartCard(
-          //         image:
-          //             (p['image'] != null &&
-          //                 p['image'].toString().isNotEmpty &&
-          //                 p['image'].toString().startsWith('http'))
-          //             ? NetworkImage(p['image']!)
-          //             : const AssetImage('assets/images/product.png'),
+          if (_loading)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else if (_error != null)
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Lỗi: $_error',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.separated(
+                controller: widget.scrollController,
+                itemCount: _items.length,
+                separatorBuilder: (_, __) => SizedBox(height: scale(16)),
+                itemBuilder: (context, index) {
+                  final vt = _items[index];
 
-          //         title: p['title'] ?? '',
-          //         modeTag: p['mode'] ?? '',
-          //         congSuat: p['congSuat'] ?? '',
-          //         chiSoIp: p['ip'] ?? '',
-          //         khoiLuong: p['khoiLuong'] ?? '',
-          //         baoHanh: p['baoHanh'] ?? '',
-          //         priceText: p['price'] ?? '',
-          //         quantity: 1,
-          //         showQuantityControl: false,
-          //         backgroundColor: Colors.white,
-          //         onIncrease: () {},
-          //         onDecrease: () {},
-          //       );
-          //     },
-          //   ),
-          // ),
+                  // LẤY GIÁ TỪ thongTinGias
+                  final num giaBan = _getGiaBan(vt);
+                  final num lineTotal = giaBan; // SL mặc định = 1
+
+                  // Label hiển thị
+                  final String congSuatLabel = vt.nhomVatTu.ma == 'PIN_LUU_TRU'
+                      ? 'Lưu trữ:'
+                      : 'Công suất:';
+
+                  // Giá trị hiển thị: PIN_LUU_TRU -> dung_luong, còn lại -> cong_suat
+                  String congSuatText = '';
+
+                  if (vt.nhomVatTu.ma == 'PIN_LUU_TRU') {
+                    // LẤY dung_luong
+                    final dynamic rawDungLuong = vt.fieldValue('dung_luong');
+                    final num dungLuong = (rawDungLuong is num)
+                        ? rawDungLuong
+                        : num.tryParse(rawDungLuong.toString()) ?? 0;
+
+                    if (dungLuong > 0) {
+                      congSuatText = '${dungLuong.toStringAsFixed(1)} kWh';
+                    }
+                  } else {
+                    // TAM_PIN, BIEN_TAN (hoặc nhóm khác dùng cong_suat)
+                    final dynamic rawCongSuat = vt.fieldValue('cong_suat');
+                    final num congSuat = (rawCongSuat is num)
+                        ? rawCongSuat
+                        : num.tryParse(rawCongSuat.toString()) ?? 0;
+
+                    if (congSuat > 0) {
+                      congSuatText = '${congSuat.toStringAsFixed(1)} kW';
+                    }
+                  }
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      widget.onSelected(vt);
+                    },
+                    child: SolarMaxCartCard(
+                      imageUrl: vt.mainImageUrl,
+                      title: vt.ten,
+                      modeTag: widget.type ?? '',
+                      congSuatLabel: congSuatLabel,
+                      congSuat: congSuatText,
+                      khoiLuong: '${vt.fieldValue('khoi_luong')} kg',
+                      baoHanh: TronGoiUtils.convertMonthToYearAndMonth(vt.thoiGianBaoHanh),
+                      priceText: lineTotal > 0
+                          ? TronGoiUtils.formatMoney(lineTotal)
+                          : '--',
+                      quantity: 1,
+                      showQuantityControl: false,
+                      backgroundColor: Colors.white,
+                      onIncrease: () {},
+                      onDecrease: () {},
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );

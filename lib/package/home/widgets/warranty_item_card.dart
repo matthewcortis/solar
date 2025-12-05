@@ -5,9 +5,9 @@ class WarrantyItemCard extends StatelessWidget {
   final String image;
   final String statusText;
   final String productName;
-  final String activeDate; // dạng: dd/MM/yyyy hoặc ISO yyyy-MM-dd
+  final String activeDate; // dạng: dd/MM/yyyy hoặc yyyy-MM-dd
   final String duration;
-  final String endDate; // dạng: dd/MM/yyyy hoặc ISO yyyy-MM-dd
+  final String endDate; // dạng: dd/MM/yyyy hoặc yyyy-MM-dd
 
   const WarrantyItemCard({
     super.key,
@@ -24,8 +24,11 @@ class WarrantyItemCard extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
 
-    // Tính progress dựa theo ngày kích hoạt – ngày hết hạn – hôm nay
+    // Tính progress
     final double progress = _calcProgressFromDates(activeDate, endDate);
+
+    // Hết hạn khi progress >= 1.0 (đã qua ngày hết hạn)
+    final bool isExpired = progress >= 1.0;
 
     return Container(
       width: scale(402),
@@ -50,13 +53,13 @@ class WarrantyItemCard extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: Image.network(
-                        image, // đây là link ảnh từ API
+                        image,
                         width: scale(74),
                         height: scale(74),
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
-                            'assets/images/product.png', // ảnh fallback trong assets
+                            'assets/images/product.png',
                             width: scale(74),
                             height: scale(74),
                             fit: BoxFit.cover,
@@ -111,17 +114,18 @@ class WarrantyItemCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      /// Status Tag
-                      _buildStatusTag(scale, statusText),
+                      /// STATUS TAG
+                      _buildStatusTag(scale, statusText, isExpired),
 
                       SizedBox(height: scale(4)),
 
+                      /// NAME
                       Text(
                         productName,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: scale(14),
+                          fontSize: scale(16),
                           fontWeight: FontWeight.w600,
                           fontFamily: 'SFProDisplay',
                           color: const Color(0xFF4F4F4F),
@@ -130,10 +134,11 @@ class WarrantyItemCard extends StatelessWidget {
 
                       SizedBox(height: scale(4)),
 
+                      /// ACTIVE DATE
                       Text(
                         "Ngày kích hoạt: $activeDate",
                         style: TextStyle(
-                          fontSize: scale(12),
+                          fontSize: scale(13),
                           fontWeight: FontWeight.w400,
                           fontFamily: 'SFProDisplay',
                           color: const Color(0xFF7B7B7B),
@@ -146,7 +151,7 @@ class WarrantyItemCard extends StatelessWidget {
                           Text(
                             "Thời gian: $duration",
                             style: TextStyle(
-                              fontSize: scale(12),
+                              fontSize: scale(13),
                               fontWeight: FontWeight.w400,
                               fontFamily: 'SFProDisplay',
                               color: const Color(0xFF7B7B7B),
@@ -155,7 +160,7 @@ class WarrantyItemCard extends StatelessWidget {
                           Text(
                             "Đến hết: $endDate",
                             style: TextStyle(
-                              fontSize: scale(12),
+                              fontSize: scale(13),
                               fontWeight: FontWeight.w400,
                               fontFamily: 'SFProDisplay',
                               color: const Color(0xFF7B7B7B),
@@ -176,7 +181,7 @@ class WarrantyItemCard extends StatelessWidget {
                         ),
                         child: FractionallySizedBox(
                           alignment: Alignment.centerLeft,
-                          widthFactor: progress, // 0.0 → 1.0
+                          widthFactor: progress, // 0 → 1
                           child: Container(
                             decoration: BoxDecoration(
                               color: getProgressGradientColor(progress),
@@ -196,8 +201,14 @@ class WarrantyItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusTag(Function(double) scale, String trangThai) {
-    final hetHan = trangThai.toLowerCase().contains("đã hết hạn");
+  /// STATUS TAG
+  Widget _buildStatusTag(
+    double Function(double) scale,
+    String trangThai,
+    bool isExpired,
+  ) {
+    final textLower = trangThai.toLowerCase().trim();
+    final hetHan = isExpired || textLower.contains("hết hạn");
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: scale(8), vertical: scale(4)),
@@ -225,12 +236,10 @@ class WarrantyItemCard extends StatelessWidget {
   }
 }
 
-/// Parse chuỗi ngày về DateTime.
-/// Ưu tiên dạng dd/MM/yyyy, fallback sang ISO (yyyy-MM-dd).
+/// DATE PARSE
 DateTime? _parseDate(String value) {
   if (value.isEmpty) return null;
 
-  // Thử dạng dd/MM/yyyy (ví dụ: 01/01/2024)
   final parts = value.split('/');
   if (parts.length == 3) {
     final day = int.tryParse(parts[0]);
@@ -241,7 +250,6 @@ DateTime? _parseDate(String value) {
     }
   }
 
-  // Fallback: ISO 8601 "2024-01-01"
   try {
     return DateTime.parse(value);
   } catch (_) {
@@ -249,7 +257,7 @@ DateTime? _parseDate(String value) {
   }
 }
 
-/// Tính progress [0..1] dựa theo ngày kích hoạt – ngày hết hạn – hôm nay.
+/// CALC PROGRESS
 double _calcProgressFromDates(String activeDate, String endDate) {
   final start = _parseDate(activeDate);
   final end = _parseDate(endDate);
@@ -257,10 +265,7 @@ double _calcProgressFromDates(String activeDate, String endDate) {
 
   final now = DateTime.now();
 
-  // Nếu chưa đến ngày kích hoạt → 0%
   if (now.isBefore(start)) return 0.0;
-
-  // Nếu đã qua ngày hết hạn → 100%
   if (now.isAfter(end)) return 1.0;
 
   final totalDays = end.difference(start).inDays;
@@ -268,18 +273,16 @@ double _calcProgressFromDates(String activeDate, String endDate) {
 
   final passedDays = now.difference(start).inDays;
   final raw = passedDays / totalDays;
-  final numClamped = raw.clamp(0.0, 1.0);
-
-  return (numClamped as num).toDouble();
+  return raw.clamp(0.0, 1.0).toDouble();
 }
 
+/// COLOR LERP
 Color getProgressGradientColor(double progress) {
-  final numClamped = progress.clamp(0.0, 1.0);
-  final t = (numClamped as num).toDouble();
+  final t = progress.clamp(0.0, 1.0).toDouble();
 
   return Color.lerp(
-    const Color(0xFF2ECC71), // xanh khi mới kích hoạt
-    const Color(0xFFEE4037), // đỏ khi gần/đã hết hạn
+    const Color(0xFF2ECC71), // xanh
+    const Color(0xFFEE4037), // đỏ
     t,
   )!;
 }

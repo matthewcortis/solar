@@ -4,15 +4,16 @@ class AuthStorage {
   static const _kRole = 'role';
   static const _kToken = 'token';
   static const _kUserId = 'userid';
+  static const _kSdt = 'sdt';
   static const _kFullName = 'fullname';
   static const _kBankName = 'bank_name';
   static const _kBankAccount = 'bank_account';
 
   // NEW: thêm key về khu vực – theo dữ liệu login
-  static const _kBranchId = 'branch_id';                // coSo.id
-  static const _kBranchCode = 'branch_code';            // coSo.ma (HN/HCM)
-  static const _kOfficeAddress = 'office_address';      // dcVanPhong
-  static const _kWarehouseAddress = 'warehouse_address';// dcKho
+  static const _kBranchId = 'branch_id';                 // coSo.id
+  static const _kBranchCode = 'branch_code';             // coSo.ma (HN/HCM)
+  static const _kOfficeAddress = 'office_address';       // dcVanPhong
+  static const _kWarehouseAddress = 'warehouse_address'; // dcKho
 
   /// LƯU TOÀN BỘ THÔNG TIN USER ĐĂNG NHẬP
   static Future<void> save({
@@ -21,6 +22,7 @@ class AuthStorage {
     required String fullName,
     required String bankName,
     required String bankAccount,
+    required String sdt,          // ✅ THÊM THAM SỐ SĐT
 
     // NEW: thêm các tham số để lưu khu vực
     String? branchId,
@@ -34,6 +36,7 @@ class AuthStorage {
     await p.setString(_kFullName, fullName);
     await p.setString(_kBankName, bankName);
     await p.setString(_kBankAccount, bankAccount);
+    await p.setString(_kSdt, sdt);     // ✅ LƯU SĐT
 
     // NEW: lưu thêm khu vực vào bộ nhớ
     if (branchId != null) {
@@ -59,6 +62,11 @@ class AuthStorage {
   static Future<String?> getUserId() async {
     final p = await SharedPreferences.getInstance();
     return p.getString(_kUserId);
+  }
+
+  static Future<String?> getSdt() async {              // ✅ GETTER SĐT
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_kSdt);
   }
 
   static Future<String?> getFullName() async {
@@ -114,6 +122,7 @@ class AuthStorage {
     await p.remove(_kRole);
     await p.remove(_kToken);
     await p.remove(_kUserId);
+    await p.remove(_kSdt);           // ✅ CLEAR SĐT
     await p.remove(_kFullName);
     await p.remove(_kBankName);
     await p.remove(_kBankAccount);

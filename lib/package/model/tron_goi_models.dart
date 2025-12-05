@@ -83,26 +83,23 @@ class FilterCriteria {
   });
 
   Map<String, dynamic> toJson() => {
-        'fieldName': fieldName,
-        'operation': operation,
-        'value': value,
-        if (logicType != null) 'logicType': logicType,
-      };
+    'fieldName': fieldName,
+    'operation': operation,
+    'value': value,
+    if (logicType != null) 'logicType': logicType,
+  };
 }
 
 class SortCriteria {
   final String fieldName;
   final String direction; // 'ASC' | 'DESC'
 
-  SortCriteria({
-    required this.fieldName,
-    required this.direction,
-  });
+  SortCriteria({required this.fieldName, required this.direction});
 
   Map<String, dynamic> toJson() => {
-        'fieldName': fieldName,
-        'direction': direction,
-      };
+    'fieldName': fieldName,
+    'direction': direction,
+  };
 }
 
 class BaseFilterRequest {
@@ -119,11 +116,11 @@ class BaseFilterRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'filters': filters.map((f) => f.toJson()).toList(),
-        'sorts': sorts.map((s) => s.toJson()).toList(),
-        'page': page,
-        'size': size,
-      };
+    'filters': filters.map((f) => f.toJson()).toList(),
+    'sorts': sorts.map((s) => s.toJson()).toList(),
+    'page': page,
+    'size': size,
+  };
 }
 
 /// ---- THUỘC TÍNH RIÊNG ----
@@ -133,11 +130,7 @@ class ThuocTinh {
   final String donVi;
   final dynamic giaTri;
 
-  ThuocTinh({
-    required this.ten,
-    required this.donVi,
-    required this.giaTri,
-  });
+  ThuocTinh({required this.ten, required this.donVi, required this.giaTri});
 
   factory ThuocTinh.fromJson(Map<String, dynamic> json) {
     return ThuocTinh(
@@ -148,10 +141,10 @@ class ThuocTinh {
   }
 
   Map<String, dynamic> toJson() => {
-        'ten': ten,
-        'donVi': donVi,
-        'giaTri': giaTri,
-      };
+    'ten': ten,
+    'donVi': donVi,
+    'giaTri': giaTri,
+  };
 }
 
 /// ---- GIÁ / THÔNG TIN GIÁ ----
@@ -185,13 +178,52 @@ class GiaInfo {
   }
 
   Map<String, dynamic> toJson() => {
-        'maCoSo': maCoSo,
-        'tenCoSo': tenCoSo,
-        'giaNhap': giaNhap,
-        'giaBan': giaBan,
-        'giaNhapRaw': giaNhapRaw,
-        'giaBanRaw': giaBanRaw,
-      };
+    'maCoSo': maCoSo,
+    'tenCoSo': tenCoSo,
+    'giaNhap': giaNhap,
+    'giaBan': giaBan,
+    'giaNhapRaw': giaNhapRaw,
+    'giaBanRaw': giaBanRaw,
+  };
+}
+
+class QuangCaoModel {
+  final int id;
+  final NganhHangDto? nganhHang;
+  final TepTinDto? tepTin;
+  final String tieuDe;
+  final String viTri;
+  final bool hoatDong;
+  final String? taoLuc;
+  final int? trangThai;
+
+  QuangCaoModel({
+    required this.id,
+    this.nganhHang,
+    this.tepTin,
+    required this.tieuDe,
+    required this.viTri,
+    required this.hoatDong,
+    this.taoLuc,
+    this.trangThai,
+  });
+
+  factory QuangCaoModel.fromJson(Map<String, dynamic> json) {
+    return QuangCaoModel(
+      id: json['id'] as int,
+      nganhHang: json['nganhHang'] != null
+          ? NganhHangDto.fromJson(json['nganhHang'] as Map<String, dynamic>)
+          : null,
+      tepTin: json['tepTin'] != null
+          ? TepTinDto.fromJson(json['tepTin'] as Map<String, dynamic>)
+          : null,
+      tieuDe: json['tieuDe'] ?? '',
+      viTri: json['viTri'] ?? '',
+      hoatDong: json['hoatDong'] ?? false,
+      taoLuc: json['taoLuc'] as String?,
+      trangThai: json['trangThai'] as int?,
+    );
+  }
 }
 
 class TepTinDto {
@@ -241,19 +273,19 @@ class TepTinDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tenTepGoc': tenTepGoc,
-        'tenTaiLen': tenTaiLen,
-        'tenLuuTru': tenLuuTru,
-        'duongDan': duongDan,
-        'loaiTepTin': loaiTepTin,
-        'duoiTep': duoiTep,
-        'kichCo': kichCo,
-        'moTa': moTa,
-        'taoLuc': taoLuc,
-        'suaLuc': suaLuc,
-        'trangThai': trangThai,
-      };
+    'id': id,
+    'tenTepGoc': tenTepGoc,
+    'tenTaiLen': tenTaiLen,
+    'tenLuuTru': tenLuuTru,
+    'duongDan': duongDan,
+    'loaiTepTin': loaiTepTin,
+    'duoiTep': duoiTep,
+    'kichCo': kichCo,
+    'moTa': moTa,
+    'taoLuc': taoLuc,
+    'suaLuc': suaLuc,
+    'trangThai': trangThai,
+  };
 }
 
 class AnhVatTuDto {
@@ -279,11 +311,11 @@ class AnhVatTuDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tepTin': tepTin.toJson(),
-        'anhChinh': anhChinh,
-        'trangThai': trangThai,
-      };
+    'id': id,
+    'tepTin': tepTin.toJson(),
+    'anhChinh': anhChinh,
+    'trangThai': trangThai,
+  };
 }
 
 class ThongTinGiaDto {
@@ -311,11 +343,11 @@ class ThongTinGiaDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'dsGia': dsGia.map((e) => e.toJson()).toList(),
-        'taoLuc': taoLuc,
-        'trangThai': trangThai,
-      };
+    'id': id,
+    'dsGia': dsGia.map((e) => e.toJson()).toList(),
+    'taoLuc': taoLuc,
+    'trangThai': trangThai,
+  };
 }
 
 /// ---- NHÓM / THƯƠNG HIỆU / NHÀ CUNG CẤP ----
@@ -363,27 +395,32 @@ class NhomVatTuDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'ma': ma,
-        'ten': ten,
-        'thuocTinhRieng':
-            thuocTinhRieng.map((k, v) => MapEntry(k, v.toJson())),
-        'gm': gm,
-        'vatTuChinh': vatTuChinh,
-        'taoLuc': taoLuc,
-        'trangThai': trangThai,
-      };
+    'id': id,
+    'ma': ma,
+    'ten': ten,
+    'thuocTinhRieng': thuocTinhRieng.map((k, v) => MapEntry(k, v.toJson())),
+    'gm': gm,
+    'vatTuChinh': vatTuChinh,
+    'taoLuc': taoLuc,
+    'trangThai': trangThai,
+  };
 }
 
 class ThuongHieuDto {
   final int id;
-  final String ten;
   final String tenQuocTe;
+  final String ten;
+  final String? quocGia;
+  final String? moTa;
+  final TepTinDto? tepTin; // thêm field này
 
   ThuongHieuDto({
     required this.id,
-    required this.ten,
     required this.tenQuocTe,
+    required this.ten,
+    this.quocGia,
+    this.moTa,
+    this.tepTin,
   });
 
   factory ThuongHieuDto.fromJson(Map<String, dynamic> json) {
@@ -391,14 +428,22 @@ class ThuongHieuDto {
       id: json['id'] ?? 0,
       ten: json['ten'] ?? '',
       tenQuocTe: json['tenQuocTe'] ?? '',
+      quocGia: json['quocGia'],
+      moTa: json['moTa'],
+      tepTin: json['tepTin'] != null
+          ? TepTinDto.fromJson(json['tepTin'] as Map<String, dynamic>)
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'ten': ten,
-        'tenQuocTe': tenQuocTe,
-      };
+    'id': id,
+    'ten': ten,
+    'tenQuocTe': tenQuocTe,
+    'quocGia': quocGia,
+    'moTa': moTa,
+    'tepTin': tepTin?.toJson(),
+  };
 }
 
 class NhaCungCapDto {
@@ -406,11 +451,7 @@ class NhaCungCapDto {
   final String ten;
   final String tenQuocTe;
 
-  NhaCungCapDto({
-    required this.id,
-    required this.ten,
-    required this.tenQuocTe,
-  });
+  NhaCungCapDto({required this.id, required this.ten, required this.tenQuocTe});
 
   factory NhaCungCapDto.fromJson(Map<String, dynamic> json) {
     return NhaCungCapDto(
@@ -421,10 +462,10 @@ class NhaCungCapDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'ten': ten,
-        'tenQuocTe': tenQuocTe,
-      };
+    'id': id,
+    'ten': ten,
+    'tenQuocTe': tenQuocTe,
+  };
 }
 
 class NganhHangDto {
@@ -462,16 +503,16 @@ class NganhHangDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'ma': ma,
-        'ten': ten,
-        'sdtSale': sdtSale,
-        'sdtTech': sdtTech,
-        'anhNgang': anhNgang,
-        'anhVuong': anhVuong,
-        'trangThai': trangThai,
-      };
-} 
+    'id': id,
+    'ma': ma,
+    'ten': ten,
+    'sdtSale': sdtSale,
+    'sdtTech': sdtTech,
+    'anhNgang': anhNgang,
+    'anhVuong': anhVuong,
+    'trangThai': trangThai,
+  };
+}
 
 class NhomTronGoiDto {
   final int id;
@@ -499,27 +540,28 @@ class NhomTronGoiDto {
       id: json['id'] ?? 0,
       nganhHang: NganhHangDto.fromJson(json['nganhHang'] ?? {}),
       ten: json['ten'] ?? '',
-      thuongHieuTamPin:
-          ThuongHieuDto.fromJson(json['thuongHieuTamPin'] ?? {}),
-      thuongHieuInverter:
-          ThuongHieuDto.fromJson(json['thuongHieuInverter'] ?? {}),
-      thuongHieuPinLuuTru:
-          ThuongHieuDto.fromJson(json['thuongHieuPinLuuTru'] ?? {}),
+      thuongHieuTamPin: ThuongHieuDto.fromJson(json['thuongHieuTamPin'] ?? {}),
+      thuongHieuInverter: ThuongHieuDto.fromJson(
+        json['thuongHieuInverter'] ?? {},
+      ),
+      thuongHieuPinLuuTru: ThuongHieuDto.fromJson(
+        json['thuongHieuPinLuuTru'] ?? {},
+      ),
       trangThai: json['trangThai'] ?? 0,
       taoLuc: json['taoLuc'],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'nganhHang': nganhHang.toJson(),
-        'ten': ten,
-        'thuongHieuTamPin': thuongHieuTamPin.toJson(),
-        'thuongHieuInverter': thuongHieuInverter.toJson(),
-        'thuongHieuPinLuuTru': thuongHieuPinLuuTru.toJson(),
-        'trangThai': trangThai,
-        'taoLuc': taoLuc,
-      };
+    'id': id,
+    'nganhHang': nganhHang.toJson(),
+    'ten': ten,
+    'thuongHieuTamPin': thuongHieuTamPin.toJson(),
+    'thuongHieuInverter': thuongHieuInverter.toJson(),
+    'thuongHieuPinLuuTru': thuongHieuPinLuuTru.toJson(),
+    'trangThai': trangThai,
+    'taoLuc': taoLuc,
+  };
 }
 
 /// ---- CƠ SỞ ----
@@ -556,14 +598,14 @@ class CoSoDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'ma': ma,
-        'ten': ten,
-        'dcVanPhong': dcVanPhong,
-        'dcKho': dcKho,
-        'taoLuc': taoLuc,
-        'trangThai': trangThai,
-      };
+    'id': id,
+    'ma': ma,
+    'ten': ten,
+    'dcVanPhong': dcVanPhong,
+    'dcKho': dcKho,
+    'taoLuc': taoLuc,
+    'trangThai': trangThai,
+  };
 }
 
 /// ---- VẬT TƯ / VẬT TƯ TRỌN GÓI ----
@@ -584,6 +626,7 @@ class VatTuDto {
   final int trangThai;
   final List<AnhVatTuDto> anhVatTus;
   final List<ThongTinGiaDto> thongTinGias;
+  final int? thoiGianBaoHanh;
 
   VatTuDto({
     required this.id,
@@ -601,6 +644,7 @@ class VatTuDto {
     required this.trangThai,
     required this.anhVatTus,
     required this.thongTinGias,
+    this.thoiGianBaoHanh,
   });
 
   factory VatTuDto.fromJson(Map<String, dynamic> json) {
@@ -632,26 +676,28 @@ class VatTuDto {
       thongTinGias: (json['thongTinGias'] as List<dynamic>? ?? [])
           .map((e) => ThongTinGiaDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      thoiGianBaoHanh: json['thoiGianBaoHanh'] as int?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'ma': ma,
-        'nhomVatTu': nhomVatTu.toJson(),
-        'thuongHieu': thuongHieu.toJson(),
-        'nhaCungCap': nhaCungCap.toJson(),
-        'ten': ten,
-        'sheetLink': sheetLink,
-        'donVi': donVi,
-        'moTaBaoGia': moTaBaoGia,
-        'moTaHopDong': moTaHopDong,
-        'duLieuRieng': duLieuRieng.map((k, v) => MapEntry(k, v.toJson())),
-        'taoLuc': taoLuc,
-        'trangThai': trangThai,
-        'anhVatTus': anhVatTus.map((e) => e.toJson()).toList(),
-        'thongTinGias': thongTinGias.map((e) => e.toJson()).toList(),
-      };
+    'id': id,
+    'ma': ma,
+    'nhomVatTu': nhomVatTu.toJson(),
+    'thuongHieu': thuongHieu.toJson(),
+    'nhaCungCap': nhaCungCap.toJson(),
+    'ten': ten,
+    'sheetLink': sheetLink,
+    'donVi': donVi,
+    'moTaBaoGia': moTaBaoGia,
+    'moTaHopDong': moTaHopDong,
+    'duLieuRieng': duLieuRieng.map((k, v) => MapEntry(k, v.toJson())),
+    'taoLuc': taoLuc,
+    'trangThai': trangThai,
+    'anhVatTus': anhVatTus.map((e) => e.toJson()).toList(),
+    'thongTinGias': thongTinGias.map((e) => e.toJson()).toList(),
+    'thoiGianBaoHanh': thoiGianBaoHanh,
+  };
 }
 
 class VatTuTronGoiDto {
@@ -698,18 +744,18 @@ class VatTuTronGoiDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'vatTu': vatTu.toJson(),
-        'moTa': moTa,
-        'soLuong': soLuong,
-        'gia': gia,
-        'gm': gm,
-        'taoLuc': taoLuc,
-        'thoiGianBaoHanh': thoiGianBaoHanh,
-        'duocBaoHanh': duocBaoHanh,
-        'duocXem': duocXem,
-        'trangThai': trangThai,
-      };
+    'id': id,
+    'vatTu': vatTu.toJson(),
+    'moTa': moTa,
+    'soLuong': soLuong,
+    'gia': gia,
+    'gm': gm,
+    'taoLuc': taoLuc,
+    'thoiGianBaoHanh': thoiGianBaoHanh,
+    'duocBaoHanh': duocBaoHanh,
+    'duocXem': duocXem,
+    'trangThai': trangThai,
+  };
 }
 
 /// ---- TRỌN GÓI ----
@@ -779,22 +825,228 @@ class TronGoiDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'coSo': coSo.toJson(),
-        'nhomTronGoi': nhomTronGoi.toJson(),
-        'ten': ten,
-        'tepTin': tepTin.toJson(),
-        'loaiHeThong': loaiHeThong,
-        'loaiPha': loaiPha,
-        'congSuatHeThong': congSuatHeThong,
-        'sanLuongToiThieu': sanLuongToiThieu,
-        'sanLuongToiDa': sanLuongToiDa,
-        'moTa': moTa,
-        'taoLuc': taoLuc,
-        'tongGia': tongGia,
-        'gmTong': gmTong,
-        'banChay': banChay,
-        'trangThai': trangThai,
-        'vatTuTronGois': vatTuTronGois.map((e) => e.toJson()).toList(),
-      };
+    'id': id,
+    'coSo': coSo.toJson(),
+    'nhomTronGoi': nhomTronGoi.toJson(),
+    'ten': ten,
+    'tepTin': tepTin.toJson(),
+    'loaiHeThong': loaiHeThong,
+    'loaiPha': loaiPha,
+    'congSuatHeThong': congSuatHeThong,
+    'sanLuongToiThieu': sanLuongToiThieu,
+    'sanLuongToiDa': sanLuongToiDa,
+    'moTa': moTa,
+    'taoLuc': taoLuc,
+    'tongGia': tongGia,
+    'gmTong': gmTong,
+    'banChay': banChay,
+    'trangThai': trangThai,
+    'vatTuTronGois': vatTuTronGois.map((e) => e.toJson()).toList(),
+  };
+}
+
+class HopDongBaoHanhDto {
+  final int id;
+  final String tenHopDong;
+  final String coSoMa;
+  final String khachHangTen;
+  final double tongGia;
+  final DateTime? taoLuc;
+  final List<VatTuHopDongBaoHanhDto> vatTuHopDongs;
+
+  HopDongBaoHanhDto({
+    required this.id,
+    required this.tenHopDong,
+    required this.coSoMa,
+    required this.khachHangTen,
+    required this.tongGia,
+    required this.vatTuHopDongs,
+    this.taoLuc,
+  });
+
+  factory HopDongBaoHanhDto.fromJson(Map<String, dynamic> json) {
+    final coSo = json['coSo'] as Map<String, dynamic>? ?? {};
+    final khachHang = json['khachHang'] as Map<String, dynamic>? ?? {};
+
+    final List<dynamic> list =
+        json['vatTuHopDongs'] as List<dynamic>? ?? const [];
+
+    return HopDongBaoHanhDto(
+      id: json['id'] as int? ?? 0,
+      tenHopDong: json['ten']?.toString() ?? '',
+      coSoMa: coSo['ma']?.toString() ?? '',
+      khachHangTen: khachHang['hoVaTen']?.toString() ?? '',
+      tongGia: (json['tongGia'] as num?)?.toDouble() ?? 0,
+      taoLuc: json['taoLuc'] != null
+          ? DateTime.tryParse(json['taoLuc'] as String)
+          : null,
+      vatTuHopDongs: list
+          .map(
+            (e) => VatTuHopDongBaoHanhDto.fromJson(e as Map<String, dynamic>),
+          )
+          .toList(),
+    );
+  }
+}
+
+class VatTuHopDongBaoHanhDto {
+  final int id;
+
+  final VatTuDto vatTu;
+  final ThuongHieuDto? thuongHieu;
+
+  final String tenVatTu;
+  final String thuongHieuTen;
+  final String donVi;
+
+  final String nhomMa;
+  final String nhomTen;
+
+  final int? thoiGianBaoHanhThietBi; // tháng
+
+  final int? thoiGianBaoHanhThucTe; // tháng
+
+  final int soLuong;
+
+  final double? giaHeThong;
+  final double? giaHienThi;
+  final double? gm;
+
+  final DateTime? baoHanhBatDau;
+  final DateTime? baoHanhKetThuc;
+  final bool duocBaoHanh;
+
+  final String? moTa;
+  final DateTime? taoLuc;
+  final int? trangThai;
+
+  VatTuHopDongBaoHanhDto({
+    required this.id,
+    required this.vatTu,
+    required this.tenVatTu,
+    required this.thuongHieuTen,
+    required this.donVi,
+    required this.nhomMa,
+    required this.nhomTen,
+    required this.soLuong,
+    required this.duocBaoHanh,
+    this.thuongHieu,
+    this.thoiGianBaoHanhThietBi,
+    this.thoiGianBaoHanhThucTe,
+    this.giaHeThong,
+    this.giaHienThi,
+    this.gm,
+    this.baoHanhBatDau,
+    this.baoHanhKetThuc,
+    this.moTa,
+    this.taoLuc,
+    this.trangThai,
+  });
+
+  factory VatTuHopDongBaoHanhDto.fromJson(Map<String, dynamic> json) {
+    final vatTuJson = json['vatTu'] as Map<String, dynamic>? ?? {};
+    final vatTu = VatTuDto.fromJson(vatTuJson);
+
+    final thuongHieuJson = json['thuongHieu'] as Map<String, dynamic>?;
+    final ThuongHieuDto? thuongHieu = thuongHieuJson != null
+        ? ThuongHieuDto.fromJson(thuongHieuJson)
+        : null;
+
+    final nhomVatTu = vatTuJson['nhomVatTu'] as Map<String, dynamic>? ?? {};
+    final String nhomMa = nhomVatTu['ma']?.toString() ?? '';
+    final String nhomTen = nhomVatTu['ten']?.toString() ?? '';
+
+    // Trong JSON của bạn có cả:
+    // - vatTu.thoiGianBaoHanh (VD: 144 tháng)
+    // - thoiGianBaoHanh tại cấp vatTuHopDong (VD: 60, 12,...)
+    final int? thoiGianBaoHanhThietBi = vatTuJson['thoiGianBaoHanh'] as int?;
+    final int? thoiGianBaoHanhThucTe = json['thoiGianBaoHanh'] as int?;
+
+    return VatTuHopDongBaoHanhDto(
+      id: json['id'] as int? ?? 0,
+      vatTu: vatTu,
+      thuongHieu: thuongHieu,
+      tenVatTu: vatTu.ten,
+      thuongHieuTen: thuongHieu?.ten ?? '--',
+      donVi: vatTu.donVi,
+      nhomMa: nhomMa,
+      nhomTen: nhomTen,
+      thoiGianBaoHanhThietBi: thoiGianBaoHanhThietBi,
+      thoiGianBaoHanhThucTe: thoiGianBaoHanhThucTe,
+      soLuong: json['soLuong'] as int? ?? 0,
+      giaHeThong: (json['giaHeThong'] as num?)?.toDouble(),
+      giaHienThi: (json['giaHienThi'] as num?)?.toDouble(),
+      gm: (json['gm'] as num?)?.toDouble(),
+      baoHanhBatDau: json['baoHanhBatDau'] != null
+          ? DateTime.tryParse(json['baoHanhBatDau'] as String)
+          : null,
+      baoHanhKetThuc: json['baoHanhKetThuc'] != null
+          ? DateTime.tryParse(json['baoHanhKetThuc'] as String)
+          : null,
+      duocBaoHanh: json['duocBaoHanh'] as bool? ?? false,
+      moTa: json['moTa'] as String?,
+      taoLuc: json['taoLuc'] != null
+          ? DateTime.tryParse(json['taoLuc'] as String)
+          : null,
+      trangThai: json['trangThai'] as int?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'vatTu': vatTu.toJson(),
+      'thuongHieu': thuongHieu?.toJson(),
+      'tenVatTu': tenVatTu,
+      'thuongHieuTen': thuongHieuTen,
+      'donVi': donVi,
+      'nhomMa': nhomMa,
+      'nhomTen': nhomTen,
+      'thoiGianBaoHanhThietBi': thoiGianBaoHanhThietBi,
+      'thoiGianBaoHanhThucTe': thoiGianBaoHanhThucTe,
+      'soLuong': soLuong,
+      'giaHeThong': giaHeThong,
+      'giaHienThi': giaHienThi,
+      'gm': gm,
+      'baoHanhBatDau': baoHanhBatDau?.toIso8601String(),
+      'baoHanhKetThuc': baoHanhKetThuc?.toIso8601String(),
+      'duocBaoHanh': duocBaoHanh,
+      'moTa': moTa,
+      'taoLuc': taoLuc?.toIso8601String(),
+      'trangThai': trangThai,
+    };
+  }
+
+  /// Ưu tiên dùng thoiGianBaoHanhThucTe, nếu null thì fallback qua thietBi
+  int get thoiGianBaoHanhEffective {
+    return thoiGianBaoHanhThucTe ?? thoiGianBaoHanhThietBi ?? 0;
+  }
+
+  /// "xx tháng", "x năm y tháng"
+  String get thoiGianBaoHanhText {
+    final m = thoiGianBaoHanhEffective;
+    if (m <= 0) return '--';
+    if (m < 12) return '$m tháng';
+    final year = m ~/ 12;
+    final month = m % 12;
+    if (month == 0) return '$year năm';
+    return '$year năm $month tháng';
+  }
+
+  /// khoảng thời gian bảo hành: "29/07/2024 - 29/07/2029"
+  String get khoangThoiGianBaoHanhText {
+    if (baoHanhBatDau == null || baoHanhKetThuc == null) return '--';
+    final start =
+        '${baoHanhBatDau!.day.toString().padLeft(2, '0')}/${baoHanhBatDau!.month.toString().padLeft(2, '0')}/${baoHanhBatDau!.year}';
+    final end =
+        '${baoHanhKetThuc!.day.toString().padLeft(2, '0')}/${baoHanhKetThuc!.month.toString().padLeft(2, '0')}/${baoHanhKetThuc!.year}';
+    return '$start - $end';
+  }
+
+  /// Thiết bị còn trong hạn bảo hành hay không
+  bool get isConBaoHanh {
+    if (!duocBaoHanh || baoHanhKetThuc == null) return false;
+    final now = DateTime.now();
+    return !now.isAfter(baoHanhKetThuc!);
+  }
 }

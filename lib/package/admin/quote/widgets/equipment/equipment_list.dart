@@ -4,11 +4,17 @@ import '../equipment/card_item_accessories_supplies.dart';
 import '../../../../model/extension.dart';
 
 class ClassVatTuPhu extends StatefulWidget {
-  const ClassVatTuPhu({super.key, required this.materials, this.onDeltaChange});
+  const ClassVatTuPhu({
+    super.key,
+    required this.materials,
+    this.onDeltaChange,
+    this.onMaterialsChanged,
+  });
 
   final List<VatTuTronGoiDto> materials;
 
   final ValueChanged<num>? onDeltaChange;
+  final ValueChanged<List<VatTuTronGoiDto>>? onMaterialsChanged; // NEW
 
   @override
   State<ClassVatTuPhu> createState() => _ClassVatTuPhuState();
@@ -49,6 +55,13 @@ class _ClassVatTuPhuState extends State<ClassVatTuPhu> {
     final current = _currentTotal();
     final delta = current - _initialTotal;
     widget.onDeltaChange?.call(delta);
+
+    final updated = <VatTuTronGoiDto>[];
+    for (int i = 0; i < widget.materials.length; i++) {
+      final item = widget.materials[i];
+      updated.add(item.copyWith(soLuong: _quantities[i].toDouble()));
+    }
+    widget.onMaterialsChanged?.call(updated);
   }
 
   void _inc(int index) {
@@ -102,9 +115,7 @@ class _ClassVatTuPhuState extends State<ClassVatTuPhu> {
 
               final num lineTotal = item.gia * quantity;
               final String priceText = TronGoiUtils.formatMoney(lineTotal);
-
               final String? imageUrl = vt.mainImageUrl;
-              print('Accessory imageUrl: $imageUrl');
 
               final ImageProvider imageProvider;
               if (imageUrl != null && imageUrl.isNotEmpty) {

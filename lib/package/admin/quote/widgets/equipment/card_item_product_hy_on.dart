@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../model/tron_goi_models.dart';
+import '../../../../model/extension.dart';
 
 class ProductItemCard extends StatelessWidget {
   final TronGoiDto combo;
@@ -35,17 +36,16 @@ class ProductItemCard extends StatelessWidget {
     final String typeText = combo.loaiHeThong;
     final String nameText = combo.ten;
     final String priceText = _formatPrice(combo.tongGia);
-    final String savingText =
-        'Công suất ~ ${combo.congSuatHeThong} kWp';
+    final savingText =
+        'Công suất ${combo.congSuatHeThong?.formatKwpWithUnit() ?? "--"}';
 
     return GestureDetector(
       child: Container(
         width: 191.w,
         height: 337.h,
-        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: const Color(0x33EFFEF5), // #EFFEF533
-          borderRadius: BorderRadius.circular(28.r),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             width: 1,
             color: isSelected
@@ -54,47 +54,38 @@ class ProductItemCard extends StatelessWidget {
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // IMAGE
+            // IMAGE (không dùng ClipRRect)
             Stack(
               children: [
+                // Ảnh: ưu tiên URL, lỗi hoặc null thì dùng asset mặc định
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20.r),
-                  child: imageUrl != null && imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl,
-                          width: 167.w,
-                          height: 167.w,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          width: 167.w,
-                          height: 167.w,
-                          color: const Color(0xFFE0E0E0),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Icons.image_outlined,
-                            size: 32.w,
-                            color: const Color(0xFFBDBDBD),
+                  child: SizedBox(
+                    width: 190.w,
+                    height: 190.w,
+                    child: (imageUrl != null && imageUrl.isNotEmpty)
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Ảnh lỗi -> dùng ảnh mặc định
+                              return Image.asset(
+                                'assets/images/product.png',
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            // URL null hoặc rỗng -> dùng ảnh mặc định
+                            'assets/images/product.png',
+                            fit: BoxFit.cover,
                           ),
-                        ),
-                ),
-                Container(
-                  width: 167.w,
-                  height: 157.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.r),
-                    gradient: const RadialGradient(
-                      center: Alignment.center,
-                      radius: 0.75,
-                      colors: [
-                        Colors.transparent,
-                        Color.fromRGBO(0, 0, 0, 0.2),
-                      ],
-                    ),
                   ),
                 ),
+
+                // Pill loại hệ thống
                 Positioned(
                   top: 12.h,
                   left: 12.w,
@@ -125,49 +116,53 @@ class ProductItemCard extends StatelessWidget {
 
             SizedBox(height: 12.h),
 
-            // TAG SAVING
-            Container(
-              width: 161.w,
-              height: 26.h,
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3F3F3),
-                borderRadius: BorderRadius.circular(100.r),
-              ),
-              child: Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/new-releases.svg',
-                    width: 18.w,
-                    height: 18.w,
-                  ),
-                  SizedBox(width: 4.w),
-                  Expanded(
-                    child: Text(
-                      savingText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'SF Pro',
-                        fontWeight: FontWeight.w400,
-                        fontSize: 9.sp,
-                        height: 12 / 9,
-                        color: const Color(0xFF4F4F4F),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 12.h),
-
-            // NAME + PRICE + RADIO
-            SizedBox(
-              width: 167.w,
+            // NHÓM NỘI DUNG TEXT – padding 12
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // TAG SAVING
+                  Container(
+                    width: double.infinity,
+                    height: 30.h,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDAFEE8), // đúng Figma
+                      borderRadius: BorderRadius.circular(100.r),
+                    ),
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/new-releases.svg',
+                          width: 18.w,
+                          height: 18.w,
+                        ),
+                        SizedBox(width: 4.w),
+                        Expanded(
+                          child: Text(
+                            savingText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: 'SF Pro',
+                              fontWeight: FontWeight.w400,
+                              fontSize: 10.sp,
+                              height: 12 / 10,
+                              color: const Color.fromARGB(255, 4, 67, 24),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 12.h),
+
+                  // NAME + PRICE + RADIO
                   Text(
                     nameText,
                     maxLines: 2,

@@ -65,7 +65,7 @@ class AppUtils {
     return years <= 1 ? "1 năm trước" : "$years năm trước";
   }
 
-  static String currency(dynamic value, {String suffix = 'đ'}) {
+  static String currency(dynamic value, {String suffix =''}) {
     if (value == null) return '0$suffix';
 
     num number;

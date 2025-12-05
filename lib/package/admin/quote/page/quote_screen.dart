@@ -6,6 +6,9 @@ import './equipment_selection_fragment.dart'; // chứa DanhMucScreen
 import '../../../model/tron_goi_models.dart';
 import '../../../product/page/bao_gia_screen.dart';
 import '../widgets/bottomsheet/confim_dialog.dart';
+import '../page/chi_tiet_bao_gia.dart';
+import '../../../model/bao_gia_draft.dart';
+
 class TaoBaoGiaScreen extends StatefulWidget {
   const TaoBaoGiaScreen({super.key});
 
@@ -15,7 +18,7 @@ class TaoBaoGiaScreen extends StatefulWidget {
 
 class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
   int _step = 1; // 1: chọn combo, 2: chọn loại (Hy-Brid/On-grid), 3: danh mục
-
+  BaoGiaDraft? _quoteDraft;
   bool _hasSelection = false;
   Map<String, dynamic>? _selectedCombo;
 
@@ -25,8 +28,6 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
 
   TronGoiDto? _selectedProduct;
   num _currentTotal = 0;
-
- 
 
   String get _totalDisplay {
     final num value = _currentTotal;
@@ -69,16 +70,16 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
       _hasProductSelection = false;
     });
   }
-    // callback nhận tổng tiền mới từ DanhMucScreen
+
+  // callback nhận tổng tiền mới từ DanhMucScreen
   void _onTotalChanged(num newTotal) {
     setState(() {
       _currentTotal = newTotal;
     });
   }
 
-
   // nhận từ ProductListScreen khi chọn combo cụ thể
-    void _onProductSelected(TronGoiDto? product) {
+  void _onProductSelected(TronGoiDto? product) {
     setState(() {
       _selectedProduct = product;
       _hasProductSelection = product != null;
@@ -87,7 +88,6 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
       _currentTotal = product?.tongGia ?? 0;
     });
   }
-
 
   void _goNext() {
     switch (_step) {
@@ -112,41 +112,41 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
   }
 
   Future<void> _submitQuote() async {
-  if (_selectedProduct == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Chưa chọn combo cụ thể')),
+    if (_selectedProduct == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Chưa chọn combo cụ thể')));
+      return;
+    }
+    if (_quoteDraft == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chưa có dữ liệu báo giá chi tiết')),
+      );
+      return;
+    }
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return CustomConfirmDialog(
+          onConfirm: () => Navigator.of(ctx).pop(true),
+          onCancel: () => Navigator.of(ctx).pop(false),
+        );
+      },
     );
-    return;
-  }
 
-  // Hiển thị dialog CustomConfirmDialog và đợi kết quả
-  final bool? confirmed = await showDialog<bool>(
-    context: context,
-    barrierDismissible: false, // không cho tắt dialog khi tap ra ngoài
-    builder: (ctx) {
-      return CustomConfirmDialog(onConfirm: () {
-        Navigator.of(ctx).pop(true);   // báo về confirm
-      }, onCancel: () {
-        Navigator.of(ctx).pop(false);  // báo về cancel
-      });
-    },
-  );
+    if (confirmed != true) return;
 
-  // Nếu không xác nhận → dừng
-  if (confirmed != true) return;
-
-  // Tiếp tục sang màn báo giá
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => const ThongTinBaoGiaScreen(),
-      settings: RouteSettings(
-        arguments: _selectedProduct, // truyền TronGoiDto đã chọn
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const QuoteSuccessScreen(),
+        settings: RouteSettings(
+          arguments: _quoteDraft, // TRUYỀN TOÀN BỘ DRAFT
+        ),
       ),
-    ),
-  );
-}
-
-
+    );
+  }
 
   void _handleBack() {
     if (_step > 1) {
@@ -368,15 +368,19 @@ class _TaoBaoGiaScreenState extends State<TaoBaoGiaScreen> {
       );
     }
 
-        return DanhMucScreen(
+    return DanhMucScreen(
       selectedType: _selectedType,
       selectedPhase: _selectedProduct?.loaiHeThong,
       tronGoi: _selectedProduct!,
       comboId: _selectedProduct!.id,
-      // THÊM CALLBACK
       onTotalChanged: _onTotalChanged,
+      onDraftChanged: (draft) {
+        // NEW
+        setState(() {
+          _quoteDraft = draft;
+        });
+      },
     );
-
   }
 }
 

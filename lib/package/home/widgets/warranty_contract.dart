@@ -1,11 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../repository/rarranty_repo.dart';
 import '../../model/hop_dong_bao_hanh_model.dart';
+import '../../model/tron_goi_models.dart';
+import '../../model/extension.dart';
 
 class WarrantyContractCard extends StatelessWidget {
-    final int hopDongId;
+  final int hopDongId;
+
   const WarrantyContractCard({super.key, required this.hopDongId});
 
   @override
@@ -13,61 +17,120 @@ class WarrantyContractCard extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
 
-    return Center(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            width: scale(402),
-            padding: EdgeInsets.all(scale(16)),
-            decoration: BoxDecoration(
-              color: const Color(0x33F3F3F3), 
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFFE0E0E0), 
-                width: 0.5,
+    return FutureBuilder<HopDongBaoHanhDto?>(
+      future: WarrantyRepository().getHopDongById(hopDongId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: SizedBox(
+              width: scale(402),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Lỗi tải hợp đồng bảo hành',
+              style: TextStyle(
+                fontFamily: 'SFProDisplay',
+                fontSize: scale(14),
+                color: const Color(0xFFE53935),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// ==== TITLE ====
-                Text(
-                  "Hợp đồng bảo hành",
-                  style: TextStyle(
-                    fontFamily: 'SFProDisplay',
-                    fontWeight: FontWeight.w600,
-                    fontSize: scale(18),
-                    height: 28 / 18,
-                    color: const Color(0xFF4F4F4F),
+          );
+        }
+
+        final hopDong = snapshot.data;
+        if (hopDong == null) {
+          return Center(
+            child: Text(
+              'Không tìm thấy hợp đồng bảo hành',
+              style: TextStyle(
+                fontFamily: 'SFProDisplay',
+                fontSize: scale(14),
+                color: const Color(0xFF4F4F4F),
+              ),
+            ),
+          );
+        }
+
+        // Bên mua: khachHang.hoVaTen
+        final String benMua = hopDong.khachHangTen;
+
+        // Ngày ký: content.taoLuc (hiện đúng field, có thể format sau nếu cần)
+        final raw = hopDong.taoLuc;
+        String formattedNgayKy = '';
+
+        if (raw != null) {
+          String rawStr = raw.toString(); // Ép sang String an toàn
+
+          final date = DateTime.tryParse(rawStr);
+          if (date != null) {
+            formattedNgayKy =
+                "${date.day.toString().padLeft(2, '0')}/"
+                "${date.month.toString().padLeft(2, '0')}/"
+                "${date.year}";
+          }
+        }
+
+        return Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                width: scale(402),
+                padding: EdgeInsets.all(scale(16)),
+                decoration: BoxDecoration(
+                  color: const Color(0x33F3F3F3),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFFE0E0E0),
+                    width: 0.5,
                   ),
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// ==== TITLE ====
+                    Text(
+                      "Hợp đồng bảo hành",
+                      style: TextStyle(
+                        fontFamily: 'SFProDisplay',
+                        fontWeight: FontWeight.w600,
+                        fontSize: scale(18),
+                        height: 28 / 18,
+                        color: const Color(0xFF4F4F4F),
+                      ),
+                    ),
 
-                SizedBox(height: scale(12)),
+                    SizedBox(height: scale(12)),
 
-    
-                buildRow(
-                  title: "Bên bán",
-                  value: "CÔNG TY CỔ PHẦN ĐẦU TƯ SLM",
-                  scale: scale,
+                    buildRow(
+                      title: "Bên bán",
+                      value: "CÔNG TY CỔ PHẦN ĐẦU TƯ SLM",
+                      scale: scale,
+                    ),
+                    buildRow(
+                      title: "Bên mua",
+                      value: benMua, // <-- khachHang.hoVaTen
+                      scale: scale,
+                    ),
+                    buildRow(
+                      title: "Ngày ký",
+                      value: formattedNgayKy, // <-- content.taoLuc
+                      scale: scale,
+                      hasBorder: false,
+                    ),
+                  ],
                 ),
-                buildRow(
-                  title: "Bên mua",
-                  value: "HOÀNG NGỌC TÂN",
-                  scale: scale,
-                ),
-                buildRow(
-                  title: "Ngày ký",
-                  value: "19/03/2025",
-                  scale: scale,
-                  hasBorder: false, 
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -122,8 +185,6 @@ class WarrantyContractCard extends StatelessWidget {
                     ),
                   ),
                 ),
-
-              
                 if (isCopy)
                   Padding(
                     padding: EdgeInsets.only(left: scale(6)),
@@ -141,13 +202,11 @@ class WarrantyContractCard extends StatelessWidget {
     );
   }
 }
+
 class DetailInfoCard extends StatefulWidget {
   final int hopDongId;
 
-  const DetailInfoCard({
-    super.key,
-    required this.hopDongId,
-  });
+  const DetailInfoCard({super.key, required this.hopDongId});
 
   @override
   State<DetailInfoCard> createState() => _DetailInfoCardState();
@@ -155,7 +214,7 @@ class DetailInfoCard extends StatefulWidget {
 
 class _DetailInfoCardState extends State<DetailInfoCard> {
   final _repo = WarrantyRepository();
-  late Future<HopDongBaoHanh?> _futureHopDong;
+  late Future<HopDongBaoHanhDto?> _futureHopDong;
 
   @override
   void initState() {
@@ -168,7 +227,7 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
 
-    return FutureBuilder<HopDongBaoHanh?>(
+    return FutureBuilder<HopDongBaoHanhDto?>(
       future: _futureHopDong,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -207,14 +266,9 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
           );
         }
 
-        // Danh sách vật tư trong hợp đồng (VatTuHopDongBH)
-        final List<VatTuHopDongBH> allItems = hopDong.vatTuHopDongs;
-
-        // Lọc chỉ vật tư chính (nhomVatTu.vatTuChinh == true)
-        final items = allItems.where((e) {
-          final nhom = e.vatTu?.nhomVatTu;
-          return nhom != null && nhom.vatTuChinh == true;
-        }).toList();
+        final List<VatTuHopDongBaoHanhDto> items = hopDong.vatTuHopDongs
+            .where((e) => e.duocBaoHanh)
+            .toList();
 
         if (items.isEmpty) {
           return Center(
@@ -248,7 +302,6 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// ===== TITLE =====
                     Text(
                       "Thông tin chi tiết",
                       style: TextStyle(
@@ -259,10 +312,9 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
                         color: const Color(0xFF4F4F4F),
                       ),
                     ),
-
                     SizedBox(height: scale(12)),
 
-                    /// ===== CÁC DÒNG VẬT TƯ =====
+                    /// Nhóm Tấm pin, Biến tần, Pin lưu trữ + các hệ vật tư khác
                     ..._buildVatTuRows(items, scale),
                   ],
                 ),
@@ -274,28 +326,75 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
     );
   }
 
+  int _groupOrder(String? ma) {
+    switch (ma) {
+      case 'TAM_PIN':
+        return 0;
+      case 'BIEN_TAN':
+        return 1;
+      case 'PIN_LUU_TRU':
+        return 2;
+      case 'HE_KHUNG_NHOM':
+        return 3;
+      case 'HE_DAY_DIEN':
+        return 4;
+      case 'TU_DIEN':
+        return 5;
+      case 'HE_TIEP_DIA':
+        return 6;
+      // case 'TRON_GOI_LAP_DAT':
+      //   return 7;
+      default:
+        return 99;
+    }
+  }
+
   List<Widget> _buildVatTuRows(
-    List<VatTuHopDongBH> items,
+    List<VatTuHopDongBaoHanhDto> items,
     double Function(double) scale,
   ) {
     final List<Widget> widgets = [];
 
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      final vatTu = item.vatTu;
-      final nhom = vatTu?.nhomVatTu;
+    // 1) Gom theo nhomMa
+    final Map<String, List<VatTuHopDongBaoHanhDto>> grouped = {};
+    for (final item in items) {
+      final String code = item.nhomMa.isNotEmpty
+          ? item.nhomMa
+          : item.vatTu.nhomVatTu.ma;
+      grouped.putIfAbsent(code, () => []).add(item);
+    }
 
-      // Tên nhóm: "Tấm Quang Năng", "Biến tần", ...
-      final String title = nhom?.ten ?? 'Vật tư';
+    final entries = grouped.entries.toList()
+      ..sort((a, b) => _groupOrder(a.key).compareTo(_groupOrder(b.key)));
 
-      // Tên vật tư: "PV JASolar | 580W | 1 mặt kính", ...
-      final String value = vatTu?.ten ?? '';
+    for (int i = 0; i < entries.length; i++) {
+      final entry = entries[i];
+      final code = entry.key;
+      final groupItems = entry.value;
 
-      // Thời gian bảo hành X tháng
-      final String duration =
-          item.thoiGianBaoHanh != null && item.thoiGianBaoHanh! > 0
-              ? '${item.thoiGianBaoHanh} tháng'
-              : '';
+      final sample = groupItems.first;
+      final vatTu = sample.vatTu;
+      final nhom = vatTu.nhomVatTu;
+
+      final String title = nhom.ten.isNotEmpty ? nhom.ten : 'Vật tư';
+
+      final mainCodes = {'TAM_PIN', 'BIEN_TAN', 'PIN_LUU_TRU'};
+      final bool isMain = mainCodes.contains(code);
+
+  
+      final String value = isMain ? vatTu.ten : nhom.ten;
+
+     
+      int months;
+      if (isMain) {
+        months = sample.thoiGianBaoHanhEffective;
+      } else {
+        months = 12; //  1 năm cho các hệ khác
+      }
+
+      final String duration = months > 0
+          ? TronGoiUtils.convertMonthToYearAndMonth(months)
+          : '';
 
       widgets.add(
         buildItem(
@@ -303,7 +402,7 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
           title: title,
           value: value,
           quantity: duration,
-          isLast: i == items.length - 1,
+          isLast: i == entries.length - 1,
         ),
       );
     }
@@ -311,7 +410,7 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
     return widgets;
   }
 
-  /// === ONE ROW ITEM ===
+  /// ONE ROW ITEM
   Widget buildItem({
     required double Function(double) scale,
     required String title,
@@ -337,7 +436,6 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// Small title
                 Text(
                   title,
                   style: TextStyle(
@@ -348,10 +446,7 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
                     color: const Color(0xFF848484),
                   ),
                 ),
-
                 SizedBox(height: scale(4)),
-
-                /// Bold value
                 Text(
                   value,
                   style: TextStyle(
@@ -373,7 +468,7 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "Thời gian BH",
+                  "Bảo hành",
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     fontFamily: 'SFProDisplay',
@@ -383,9 +478,7 @@ class _DetailInfoCardState extends State<DetailInfoCard> {
                     color: const Color(0xFF848484),
                   ),
                 ),
-
                 SizedBox(height: scale(4)),
-
                 Text(
                   quantity,
                   textAlign: TextAlign.right,

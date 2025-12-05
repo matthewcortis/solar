@@ -2,10 +2,44 @@ import 'package:flutter/material.dart';
 import '../../model/tron_goi_models.dart';
 import '../../model/extension.dart';
 
+/// Row dữ liệu hiển thị trong bảng (Tên – Bảo hành – Số lượng)
+class _RowItem {
+  final String name;
+  final String warranty;
+  final String quantityText;
+
+  _RowItem({
+    required this.name,
+    required this.warranty,
+    required this.quantityText,
+  });
+} 
+
 class OtherMaterialsSection extends StatelessWidget {
   final List<VatTuGroupResult> groups;
+  final List<VatTuTronGoiDto> mainDevices;
 
-  const OtherMaterialsSection({super.key, required this.groups});
+  const OtherMaterialsSection({
+    super.key,
+    required this.groups,
+    required this.mainDevices,
+  });
+
+  // Ưu tiên sort cho thiết bị chính theo mã nhóm vật tư
+  int _priorityForMainDevice(VatTuTronGoiDto item) {
+    final String ma = item.vatTu.nhomVatTu.ma;
+    switch (ma) {
+      case 'TAM_PIN':
+        return 0;
+      case 'BIEN_TAN':
+      case 'BEN_TAN':
+        return 1;
+      case 'PIN_LUU_TRU':
+        return 2;
+      default:
+        return 10; // Các nhóm khác sau cùng
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +52,77 @@ class OtherMaterialsSection extends StatelessWidget {
       return q.toString();
     }
 
-    // Tổng số vật tư trong tất cả group
-    final num totalQty = groups.length;
-    final String quantity = totalQty.toString();
+    // ===== 1) Chuẩn bị danh sách dòng hiển thị (tên – bảo hành – số lượng) =====
 
+    final List<_RowItem> rows = [];
+
+    // ---- 1.a. Thêm THIẾT BỊ CHÍNH lên đầu, đã sort theo ưu tiên ----
+    final List<VatTuTronGoiDto> sortedMain = [...mainDevices]
+      ..sort((a, b) {
+        final pa = _priorityForMainDevice(a);
+        final pb = _priorityForMainDevice(b);
+        if (pa != pb) return pa - pb;
+        // Nếu cùng priority thì sort theo tên thiết bị
+        return (a.vatTu.ten).compareTo(b.vatTu.ten);
+      });
+
+    for (final item in sortedMain) {
+      final String name = item.vatTu.ten;
+
+      String warranty;
+      if (item.thoiGianBaoHanh > 0) {
+        warranty = TronGoiUtils.convertMonthToYearAndMonth(
+          item.thoiGianBaoHanh,
+        );
+      } else {
+        warranty = 'Không bảo hành';
+      }
+
+      final String quantityText = formatQuantity(item.soLuong);
+
+      rows.add(
+        _RowItem(
+          name: name,
+          warranty: warranty,
+          quantityText: quantityText,
+        ),
+      );
+    }
+
+    // ---- 1.b. Thêm các NHÓM VẬT TƯ PHỤ, quantity = tổng số lượng ----
+    for (final group in groups) {
+      if (group.items.isEmpty) continue;
+
+      final VatTuTronGoiDto firstItem = group.items.first;
+
+      final String name = group.title;
+      final String warranty = (firstItem.thoiGianBaoHanh > 0)
+          ? TronGoiUtils.convertMonthToYearAndMonth(firstItem.thoiGianBaoHanh)
+          : group.warrantyText.isNotEmpty
+              ? group.warrantyText
+              : 'Không bảo hành';
+
+      // Tổng số lượng trong group
+      // final num totalQty = group.items.fold<num>(
+      //   0,
+      //   (sum, e) => sum + e.soLuong,
+      // );
+      //final String quantityText = formatQuantity(totalQty);
+
+      rows.add(
+        _RowItem(
+          name: name,
+          warranty: warranty,
+          quantityText: "1",
+        ),
+      );
+    }
+
+    // Tổng dòng để hiển thị trong chip header
+    final int totalRows = rows.length;
+    final String quantity = totalRows.toString();
+
+    // ===== 2) UI =====
     return Container(
       width: scale(430),
       padding: EdgeInsets.all(scale(16)),
@@ -48,11 +149,11 @@ class OtherMaterialsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- Header: "Vật tư khác" + "{n} vật tư" ---
+          // --- Header: "Danh mục vật tư lắp đặt" + "{n} mục" ---
           Row(
             children: [
               Text(
-                'Vật tư khác',
+                'Danh mục vật tư lắp đặt',
                 style: TextStyle(
                   fontFamily: 'SFProDisplay',
                   fontWeight: FontWeight.w600,
@@ -74,7 +175,7 @@ class OtherMaterialsSection extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    '$quantity vật tư',
+                    '$quantity mục', // tổng số dòng
                     style: TextStyle(
                       fontFamily: 'SFProDisplay',
                       fontWeight: FontWeight.w500,
@@ -141,50 +242,26 @@ class OtherMaterialsSection extends StatelessWidget {
             ),
           ),
 
-          // --- Danh sách group (mỗi dòng = 1 nhóm vật tư phụ) ---
+          // --- Danh sách dòng (thiết bị chính + nhóm vật tư) ---
           ListView.separated(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: groups.length,
+            itemCount: rows.length,
             separatorBuilder: (_, __) =>
                 const Divider(height: 1, color: Color(0xFFE0E0E0)),
             itemBuilder: (context, index) {
-              final group = groups[index];
-
-              if (group.items.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              final VatTuTronGoiDto firstItem = group.items.first;
-
-              // Tên hiển thị: tên group (vd: Hệ khung nhôm)
-              final String name = group.title;
-
-              // Bảo hành: dùng warrantyText của group, fallback sang formatWarranty(firstItem)
-              final String warranty = (firstItem.thoiGianBaoHanh > 0)
-                  ? TronGoiUtils.convertMonthToYearAndMonth(
-                      firstItem.thoiGianBaoHanh,
-                    )
-                  : group
-                        .warrantyText
-                        .isNotEmpty // Chỉ dùng group.warrantyText như một fallback
-                  ? group.warrantyText
-                  : 'Không bảo hành';
-
-              // Số lượng: tổng soLuong của tất cả vật tư trong group
-              final num totalQty = group.items.length;
-              final String quantity = totalQty.toString();
+              final row = rows[index];
 
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: scale(8)),
                 child: Row(
                   children: [
-                    // Tên thiết bị (thực ra là tên nhóm vật tư)
+                    // Tên thiết bị
                     Expanded(
                       flex: 6,
                       child: Text(
-                        name,
+                        row.name,
                         style: TextStyle(
                           fontFamily: 'SFProDisplay',
                           fontWeight: FontWeight.w400,
@@ -198,7 +275,7 @@ class OtherMaterialsSection extends StatelessWidget {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        warranty,
+                        row.warranty,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'SFProDisplay',
@@ -213,7 +290,7 @@ class OtherMaterialsSection extends StatelessWidget {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        quantity,
+                        row.quantityText,
                         textAlign: TextAlign.right,
                         style: TextStyle(
                           fontFamily: 'SFProDisplay',

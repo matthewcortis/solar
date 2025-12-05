@@ -4,28 +4,33 @@ import '../../model/tron_goi_models.dart';
 
 class ProductRepository {
   Future<VatTuDto?> getProductDetailById(int id) async {
-    final body = {
-      "filters": [
-        {
-          "fieldName": "id",
-          "operation": "EQUALS",
-          "value": id,
-          "logicType": "OR",
-        }
+    final body = BaseFilterRequest(
+      filters: [
+        FilterCriteria(
+          fieldName: 'id',
+          operation: 'EQUALS',
+          value: id,
+          logicType: 'AND',
+        ),
       ],
-      "sorts": [],
-      "page": 0,
-      "size": 1,
-    };
+      sorts: const [],
+      page: 0,
+      size: 1,
+    ).toJson();
 
     final res = await ApiService.post("/basic-api/vat-tu/filter", body);
-    final data = res['data'];
-    if (data == null) return null;
 
-    final content = data['content'];
-    if (content is List && content.isNotEmpty) {
-      return VatTuDto.fromJson(content.first);
-    }
-    return null;
+    final parsed = ResponseData<PageResponse<VatTuDto>>.fromJson(
+      res as Map<String, dynamic>,
+      (dataJson) => PageResponse<VatTuDto>.fromJson(
+        dataJson as Map<String, dynamic>,
+        (itemJson) => VatTuDto.fromJson(itemJson as Map<String, dynamic>),
+      ),
+    );
+
+    final page = parsed.data;
+    if (page.content.isEmpty) return null;
+
+    return page.content.first;
   }
 }

@@ -193,7 +193,7 @@ class ComboDetailCard extends StatelessWidget {
 
     return Container(
       width: scale(430),
-      height: scale(358),
+
       padding: EdgeInsets.all(scale(16)),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -340,10 +340,9 @@ class ComboDetailCard extends StatelessWidget {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.of(context).pushNamed(
-                        AppRoutes.baoGiaScreen,
-                        arguments: tronGoi, 
-                      );
+                      Navigator.of(
+                        context,
+                      ).pushNamed(AppRoutes.baoGiaScreen, arguments: tronGoi);
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -440,6 +439,10 @@ class ComboDetailInfo extends StatelessWidget {
   final String hoanVon;
   final String dienTich;
 
+  final String thuongHieuTamPin;
+  final String thuongHieuBienTan;
+  final String thuongHieuLuuTru;
+
   const ComboDetailInfo({
     super.key,
     required this.congSuatPV,
@@ -448,6 +451,9 @@ class ComboDetailInfo extends StatelessWidget {
     required this.sanLuong,
     required this.hoanVon,
     required this.dienTich,
+    required this.thuongHieuTamPin,
+    required this.thuongHieuBienTan,
+    required this.thuongHieuLuuTru,
   });
 
   @override
@@ -500,9 +506,9 @@ class ComboDetailInfo extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildRow('Công suất PV:', congSuatPV),
-                _buildRow('Biến tần Solis:', bienTan),
-                _buildRow('Lưu trữ Dyness:', luuTru),
+                _buildRow('$thuongHieuTamPin:', congSuatPV),
+                _buildRow('$thuongHieuBienTan:', bienTan),
+                _buildRow('$thuongHieuLuuTru:', luuTru),
                 _buildRow('Sản lượng:', sanLuong),
                 _buildRow('Hoàn vốn:', hoanVon),
                 _buildRow('Diện tích lắp đặt:', dienTich),

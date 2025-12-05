@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../quantity_control.dart';
 
 class SolarMaxCartCard extends StatelessWidget {
-
   final String? imageUrl;
 
   final String title;
@@ -17,7 +16,6 @@ class SolarMaxCartCard extends StatelessWidget {
   final int quantity;
 
   final VoidCallback? onIncrease;
-
   final VoidCallback? onDecrease;
 
   final bool showQuantityControl;
@@ -86,17 +84,19 @@ class SolarMaxCartCard extends StatelessWidget {
           width: scale(366),
           height: scale(144),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start, // ảnh ngang với tên
             children: [
               _GradientBorderImage(
                 imageUrl: imageUrl,
                 size: scale(100),
+                modeTag: modeTag,
+                scale: scale,
               ),
-              SizedBox(width: scale(12)), // gap: 12
+              SizedBox(width: scale(12)),
               Expanded(
                 child: _RightContent(
                   title: title,
-                  modeTag: modeTag,
-                   congSuatLabel: congSuatLabel,  
+                  congSuatLabel: congSuatLabel,
                   congSuat: congSuat,
                   khoiLuong: khoiLuong,
                   baoHanh: baoHanh,
@@ -116,18 +116,21 @@ class SolarMaxCartCard extends StatelessWidget {
   }
 }
 
-/// Ảnh 100×100, viền gradient 1px, bo 12, bóng mờ 0 0 12
+/// Ảnh 100×100, viền gradient 1px, bo 12, bóng mờ 0 0 12 + tag ở góc trái
 class _GradientBorderImage extends StatelessWidget {
   const _GradientBorderImage({
     required this.imageUrl,
     required this.size,
+    required this.modeTag,
+    required this.scale,
   });
 
   final String? imageUrl;
   final double size;
+  final String modeTag;
+  final double Function(double v) scale;
 
   Widget _buildImage() {
-    // Không có ảnh -> dùng fallback asset
     if (imageUrl == null || imageUrl!.isEmpty) {
       return Image.asset(
         'assets/images/product.png',
@@ -135,7 +138,6 @@ class _GradientBorderImage extends StatelessWidget {
       );
     }
 
-    // Nếu là http/https -> Image.network
     if (imageUrl!.startsWith('http')) {
       return Image.network(
         imageUrl!,
@@ -143,7 +145,6 @@ class _GradientBorderImage extends StatelessWidget {
       );
     }
 
-    // Còn lại coi như asset path
     return Image.asset(
       imageUrl!,
       fit: BoxFit.cover,
@@ -152,38 +153,65 @@ class _GradientBorderImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: const BoxDecoration(
-        boxShadow: [BoxShadow(color: Color(0x1A000000), blurRadius: 12)],
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
+    return Stack(
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: const BoxDecoration(
+            boxShadow: [BoxShadow(color: Color(0x1A000000), blurRadius: 12)],
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(1), // border 1px
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: _buildImage(),
+              ),
+            ),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(1), // border-width: 1
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: _buildImage(),
+
+        // Tag Hv-Brid ở góc trái trên ảnh
+        Positioned(
+          top: scale(6),
+          left: scale(6),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: scale(10),
+              vertical: scale(3),
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F2),
+              borderRadius: BorderRadius.circular(800),
+            ),
+            child: Text(
+              modeTag,
+              style: TextStyle(
+                fontSize: scale(12),
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF4F4F4F),
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
 class _RightContent extends StatelessWidget {
   final String title;
-  final String modeTag;
-    final String congSuatLabel;
+  final String congSuatLabel;
   final String congSuat;
   final String khoiLuong;
   final String baoHanh;
@@ -196,7 +224,6 @@ class _RightContent extends StatelessWidget {
 
   const _RightContent({
     required this.title,
-    required this.modeTag,
     required this.congSuatLabel,
     required this.congSuat,
     required this.khoiLuong,
@@ -215,52 +242,23 @@ class _RightContent extends StatelessWidget {
       width: scale(254),
       height: scale(144),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // frame: tiêu đề + tag
-          SizedBox(
-            height: scale(20),
-            width: scale(254),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: scale(16),
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1C1C1E),
-                    ),
-                  ),
-                ),
-                SizedBox(width: scale(8)),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: scale(12),
-                    vertical: scale(3),
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF2F2F2),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    modeTag,
-                    style: TextStyle(
-                      fontSize: scale(12),
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF4F4F4F),
-                    ),
-                  ),
-                ),
-              ],
+          // tiêu đề – đỉnh ngang với ảnh
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: scale(16),
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1C1C1E),
             ),
           ),
 
-          // frame: 4 dòng thông tin
+          SizedBox(height: scale(6)),
+
+          // 3 dòng thông tin
           SizedBox(
             height: scale(84),
             width: scale(254),
@@ -268,14 +266,16 @@ class _RightContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _InfoRow(label: congSuatLabel , value: congSuat, scale: scale),
+                _InfoRow(label: congSuatLabel, value: congSuat, scale: scale),
                 _InfoRow(label: 'Khối lượng:', value: khoiLuong, scale: scale),
                 _InfoRow(label: 'Bảo hành:', value: baoHanh, scale: scale),
               ],
             ),
           ),
 
-          // frame: giá + nút tăng/giảm
+          const Spacer(),
+
+          // Giá + nút tăng/giảm
           SizedBox(
             height: scale(28),
             width: scale(254),
@@ -308,7 +308,6 @@ class _RightContent extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  
   final String label;
   final String value;
   final double Function(double v) scale;

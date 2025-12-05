@@ -169,7 +169,7 @@ class CustomerListScreen extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w600,
-              fontSize: scale(22),
+              fontSize: scale(20),
               color: const Color(0xFFEE4037),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer_animation/shimmer_animation.dart'; // <-- thêm
 import '../../model/tron_goi_models.dart';
 import '../repository/tron_goi_repo.dart';
 import '../../product/widgets/product_card_combo.dart';
@@ -67,11 +68,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     child: const Icon(
                       Icons.arrow_back_ios_new,
                       size: 18,
-                      color: Color(0xFF666666),
+                      color: Color.fromARGB(255, 255, 0, 0),
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 16),
                 Text(
                   widget.comboName ?? 'Danh sách trọn gói',
@@ -111,14 +111,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
               future: future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  // Shimmer skeleton cho ProductItemCard
+                  return GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2, // 2 cột
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 202 / 395,
+                    ),
+                    itemCount: 4,
+                    itemBuilder: (context, index) {
+                      return Shimmer(
+                        child: const _ProductItemCardShimmer(),
+                      );
+                    },
+                  );
                 }
 
                 if (snapshot.hasError) {
-                  return Center(
+                  return const Center(
                     child: Text(
                       'Lỗi tải danh sách trọn gói',
-                      style: const TextStyle(fontSize: 14, color: Colors.red),
+                      style: TextStyle(fontSize: 14, color: Colors.red),
                     ),
                   );
                 }
@@ -128,7 +144,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   return const Center(
                     child: Text(
                       'Không có trọn gói nào',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF828282)),
+                      style:
+                          TextStyle(fontSize: 14, color: Color(0xFF828282)),
                     ),
                   );
                 }
@@ -139,13 +156,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     crossAxisCount: 2, // 2 cột
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio:
-                        202 / 395, // tỉ lệ giống BrandCard/ComboCard
+                    childAspectRatio: 202 / 395,
                   ),
                   itemCount: list.length,
                   itemBuilder: (context, index) {
-                    final tronGoi =
-                        list[index]; // <- kiểu TronGoiModel, nhưng đã implements TronGoiBase
+                    final tronGoi = list[index];
                     return ProductItemCard(combo: tronGoi);
                   },
                 );
@@ -179,6 +194,81 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shimmer skeleton cho ProductItemCard
+class _ProductItemCardShimmer extends StatelessWidget {
+  const _ProductItemCardShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          // Image placeholder
+          Container(
+            width: double.infinity,
+            height: 190,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0E0E0),
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // title line
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              width: 140,
+              height: 14,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0E0E0),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // price line
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              width: 100,
+              height: 16,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0E0E0),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // tag placeholder
+          Container(
+            width: 167,
+            height: 26,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0E0E0),
+              borderRadius: BorderRadius.circular(100),
+            ),
+          ),
+          const Spacer(),
+          // button placeholder
+          Container(
+            width: double.infinity,
+            height: 35,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0E0E0),
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ],
       ),
     );
   }

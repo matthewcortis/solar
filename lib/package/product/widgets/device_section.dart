@@ -8,10 +8,34 @@ class DeviceSection extends StatelessWidget {
 
   const DeviceSection({super.key, required this.deviceProducts});
 
+  // Hàm priority giống bên OtherMaterialsSection
+  int _priority(VatTuTronGoiDto item) {
+    final String ma = item.vatTu.nhomVatTu.ma;
+    switch (ma) {
+      case 'TAM_PIN':
+        return 0;
+      case 'BIEN_TAN':
+        return 1;
+      case 'PIN_LUU_TRU':
+        return 2;
+      default:
+        return 10;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
+
+    // ==== SORT DANH SÁCH THIẾT BỊ CHÍNH ====
+    final List<VatTuTronGoiDto> sorted = [...deviceProducts]
+      ..sort((a, b) {
+        final pa = _priority(a);
+        final pb = _priority(b);
+        if (pa != pb) return pa - pb;
+        return (a.vatTu.ten).compareTo(b.vatTu.ten);
+      });
 
     return Container(
       width: scale(398),
@@ -66,14 +90,13 @@ class DeviceSection extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               clipBehavior: Clip.none,
-              itemCount: deviceProducts.length,
+              itemCount: sorted.length,
               separatorBuilder: (_, __) => SizedBox(width: scale(16)),
               itemBuilder: (context, index) {
-                final item = deviceProducts[index];
+                final item = sorted[index];
                 return ProductDeviceCard(
                   item: item,
                   onTap: () {
-                    // id của VatTuTronGoiDto trong combo
                     Navigator.pushNamed(
                       context,
                       AppRoutes.detailProductDevice,

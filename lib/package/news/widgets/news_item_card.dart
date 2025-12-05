@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../model/bai_viet_model.dart';
 import '../../utils/app_utils.dart';
 import '../../../routes.dart';
+
 class NewsCardCard extends StatelessWidget {
   final dynamic news;
 
@@ -21,23 +22,19 @@ class NewsCardCard extends StatelessWidget {
     final String? imageUrl = isApi ? news.imageUrl : null;
     final String? imageAsset = !isApi ? news.image : null;
 
+    // Ảnh fallback dùng chung
+    const String defaultAsset = 'assets/images/product.png';
+
     return GestureDetector(
       onTap: () {
         if (isApi) {
-          // Dữ liệu từ API: BaiVietModel -> truyền id sang màn chi tiết
           final BaiVietModel article = news as BaiVietModel;
           Navigator.of(context).pushNamed(
             AppRoutes.detailNewsScreen,
             arguments: article.id,
           );
         } else {
-          // Dữ liệu local (FAQ, hướng dẫn, v.v.)
-          // Tuỳ bạn xử lý: có thể mở màn chi tiết khác hoặc dùng cùng màn chi tiết
-          // Ví dụ: nếu local cũng có field id thì:
-          // Navigator.of(context).pushNamed(
-          //   AppRoutes.detailNewsScreen,
-          //   arguments: news.id,
-          // );
+          // xử lý cho data local nếu cần
         }
       },
       child: Center(
@@ -79,6 +76,7 @@ class NewsCardCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // IMAGE
               SizedBox(
                 width: scale(372),
                 height: scale(170),
@@ -87,28 +85,41 @@ class NewsCardCard extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.topLeft,
                     children: [
+                      // Ưu tiên URL từ API
                       if (imageUrl != null && imageUrl.isNotEmpty)
                         Image.network(
                           imageUrl,
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
-                        ),
-                      if (imageUrl == null && imageAsset != null)
+                          // Nếu URL lỗi -> fallback về asset (ưu tiên imageAsset local nếu có, không thì dùng defaultAsset)
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              imageAsset ?? defaultAsset,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        )
+                      // Không có URL, nhưng có asset được truyền sẵn (data local)
+                      else if (imageAsset != null)
                         Image.asset(
                           imageAsset,
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
+                        )
+                      // Không có gì -> dùng defaultAsset, tuyệt đối không dùng Icon
+                      else
+                        Image.asset(
+                          defaultAsset,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
                         ),
-                      if ((imageUrl == null || imageUrl.isEmpty) &&
-                          imageAsset == null)
-                        Container(
-                          color: const Color(0xFFE6E6E6),
-                          child: const Center(
-                            child: Icon(Icons.image_not_supported),
-                          ),
-                        ),
+
+                      // Overlay gradient
                       Container(
                         width: double.infinity,
                         height: double.infinity,
@@ -131,6 +142,7 @@ class NewsCardCard extends StatelessWidget {
 
               SizedBox(height: scale(10)),
 
+              // CONTENT
               Container(
                 width: scale(372),
                 padding: EdgeInsets.all(scale(16)),
@@ -170,16 +182,22 @@ class NewsCardCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // TITLE
-                          Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontFamily: 'SFProDisplay',
-                              fontWeight: FontWeight.w600,
-                              fontSize: scale(14),
-                              color: const Color(0xFF1A1A1A),
+                          // TITLE: luôn giữ chiều cao ~2 dòng
+                          SizedBox(
+                            height: scale(40), // chỉnh nếu muốn 2 dòng cao hơn/thấp hơn
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: 'SFProDisplay',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: scale(14),
+                                  color: const Color(0xFF1A1A1A),
+                                ),
+                              ),
                             ),
                           ),
 

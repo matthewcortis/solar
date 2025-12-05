@@ -13,13 +13,20 @@ class DanhMucThietBiVaVatTu extends StatefulWidget {
   final String? selectedPhase; // '1', '3', ...
   final TronGoiDto tronGoi;
   final ValueChanged<num>? onTotalChanged;
+  final ValueChanged<List<VatTuTronGoiDto>>? onMainDevicesChanged;
 
+  // NEW: callback báo giá khung sắt / nhân công
+  final ValueChanged<num>? onGiaBanKhungSatChanged;
+  final ValueChanged<num>? onGiaNhanCongKhungSatChanged;
   const DanhMucThietBiVaVatTu({
     super.key,
     this.selectedType,
     this.selectedPhase,
     required this.tronGoi,
     this.onTotalChanged,
+    this.onMainDevicesChanged,
+    this.onGiaBanKhungSatChanged,
+    this.onGiaNhanCongKhungSatChanged,
   });
 
   @override
@@ -33,10 +40,22 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
   late final MainDeviceGroups _groups;
   late final List<String> _selectedTags;
 
-  // PHẦN CỐ ĐỊNH: nhân công + vật tư phụ + phần còn lại ngoài 3 thiết bị chính
   late final num _baseOtherPart;
   num _giaBanKhungSat = 0;
   num _giaNhanCongKhungSat = 0;
+
+  double _getGiaBanFromVatTu(VatTuDto vt) {
+    if (vt.thongTinGias.isEmpty) return 0.0;
+
+    final giaDto = vt.thongTinGias.firstWhere(
+      (g) => g.trangThai == 1,
+      orElse: () => vt.thongTinGias.last,
+    );
+
+    if (giaDto.dsGia.isEmpty) return 0.0;
+    return (giaDto.dsGia.first.giaBan ?? 0).toDouble();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -89,20 +108,70 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
     // TỔNG MỚI = PHẦN CỐ ĐỊNH (nhân công, vật tư phụ, ...) + 3 THIẾT BỊ CHÍNH
     final num total =
         _baseOtherPart + currentMain + _giaBanKhungSat + _giaNhanCongKhungSat;
-
     widget.onTotalChanged?.call(total);
+
+    final mainDevices = <VatTuTronGoiDto>[
+      ..._groups.panels,
+      ..._groups.inverters,
+      ..._groups.batteries,
+    ];
+    widget.onMainDevicesChanged?.call(mainDevices);
+    widget.onGiaBanKhungSatChanged?.call(_giaBanKhungSat);
+    widget.onGiaNhanCongKhungSatChanged?.call(_giaNhanCongKhungSat);
   }
 
   void _openProductBottomSheet(
     BuildContext context, {
-    required String categoryLabel,
+    required String nhomMa,
+    required int indexInGroup,
   }) {
     showSelectProductBottomSheet(
       context,
+      nhomMa: nhomMa,
       type: widget.selectedType,
       phase: widget.selectedPhase,
-      categoryLabel: categoryLabel,
+      categoryLabel: _mapNhomMaToLabel(nhomMa),
+      onSelected: (VatTuDto vtMoi) {
+        setState(() {
+          final num giaMoi = _getGiaBanFromVatTu(vtMoi);
+
+          if (nhomMa == 'TAM_PIN') {
+            final old = _groups.panels[indexInGroup];
+            _groups.panels[indexInGroup] = old.copyWith(
+              vatTu: vtMoi,
+              gia: giaMoi.toDouble(),
+            );
+          } else if (nhomMa == 'BIEN_TAN') {
+            final old = _groups.inverters[indexInGroup];
+            _groups.inverters[indexInGroup] = old.copyWith(
+              vatTu: vtMoi,
+              gia: giaMoi.toDouble(),
+            );
+          } else if (nhomMa == 'PIN_LUU_TRU') {
+            final old = _groups.batteries[indexInGroup];
+            _groups.batteries[indexInGroup] = old.copyWith(
+              vatTu: vtMoi,
+              gia: giaMoi.toDouble(),
+            );
+          }
+        });
+
+        _notifyTotalChanged();
+      },
     );
+  }
+
+  String _mapNhomMaToLabel(String nhomMa) {
+    switch (nhomMa) {
+      case 'TAM_PIN':
+        return 'Tấm quang năng';
+      case 'BIEN_TAN':
+        return 'Biến tần';
+      case 'PIN_LUU_TRU':
+        return 'Pin lưu trữ';
+      default:
+        return '';
+    }
   }
 
   @override
@@ -165,8 +234,6 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                     : 'Công suất:';
 
                 final num lineTotal = item.gia * item.soLuong;
-                print(item.thoiGianBaoHanh);
-
                 return SolarMaxCartCard(
                   imageUrl: vt.mainImageUrl,
                   title: vt.ten,
@@ -178,14 +245,12 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                           item.soLuong,
                         )
                       : '',
-
                   khoiLuong: '${vt.fieldValue('khoi_luong')} kg',
                   baoHanh: item.thoiGianBaoHanh > 0
                       ? TronGoiUtils.convertMonthToYearAndMonth(
                           item.thoiGianBaoHanh,
                         )
                       : '',
-
                   priceText: TronGoiUtils.formatMoney(lineTotal),
                   quantity: item.soLuong.toInt(),
                   onIncrease: () {
@@ -208,10 +273,15 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                   },
                 );
               }).toList(),
-              onChange: () => _openProductBottomSheet(
-                context,
-                categoryLabel: 'Tấm quang năng',
-              ),
+              // MỞ BOTTOM SHEET: đổi thiết bị đầu tiên trong nhóm TẤM PIN
+              onChange: () {
+                if (_groups.panels.isEmpty) return;
+                _openProductBottomSheet(
+                  context,
+                  nhomMa: 'TAM_PIN',
+                  indexInGroup: 0,
+                );
+              },
             ),
 
             const SizedBox(height: 12),
@@ -235,10 +305,7 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                   modeTag: widget.selectedType ?? '',
                   congSuatLabel: congSuatLabel,
                   congSuat: vt.nhomVatTu.ma == 'BIEN_TAN'
-                      ? extBaoGiaTronGoi.formatCongSuatTong(
-                          vt.fieldValue('cong_suat'),
-                          item.soLuong,
-                        )
+                      ? '${(num.tryParse(vt.fieldValue("cong_suat").toString()) ?? 0) * item.soLuong} kW'
                       : '',
 
                   khoiLuong: '${vt.fieldValue('khoi_luong')} kg',
@@ -269,12 +336,19 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                   },
                 );
               }).toList(),
-              onChange: () =>
-                  _openProductBottomSheet(context, categoryLabel: 'Biến tần'),
+              onChange: () {
+                if (_groups.inverters.isEmpty) return;
+                _openProductBottomSheet(
+                  context,
+                  nhomMa: 'BIEN_TAN',
+                  indexInGroup: 0,
+                );
+              },
             ),
 
             const SizedBox(height: 12),
 
+            // ===================== PIN LƯU TRỮ =====================
             // ===================== PIN LƯU TRỮ =====================
             OptionCard(
               title: 'Pin lưu trữ',
@@ -284,23 +358,24 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                 final vt = item.vatTu;
 
                 final num lineTotal = item.gia * item.soLuong;
-                final String congSuatLabel = vt.nhomVatTu.ma == 'PIN_LUU_TRU'
-                    ? 'Lưu trữ:'
-                    : 'Công suất:';
+
+                // --- TÍNH TỔNG DUNG LƯỢNG THEO SỐ LƯỢNG ---
+                final dynamic rawDungLuong = vt.fieldValue('dung_luong');
+                num baseDungLuong = 0;
+                if (rawDungLuong is num) {
+                  baseDungLuong = rawDungLuong;
+                } else if (rawDungLuong is String) {
+                  baseDungLuong = num.tryParse(rawDungLuong) ?? 0;
+                }
+                final num totalDungLuong = baseDungLuong * item.soLuong;
 
                 return SolarMaxCartCard(
                   imageUrl: vt.mainImageUrl,
                   title: vt.ten,
                   modeTag: widget.selectedType ?? '',
-                  congSuatLabel: congSuatLabel,
-
-                  congSuat: vt.nhomVatTu.ma == 'PIN_LUU_TRU'
-                      ? extBaoGiaTronGoi.formatCongSuatTong(
-                          vt.fieldValue('dung_luong'),
-                          item.soLuong,
-                        )
-                      : '',
-
+                  congSuatLabel: 'Lưu trữ:',
+                  // VD: 1 cái 5 kWh -> 2 cái: 10.0 kWh (có thể chỉnh 0 chữ số thập phân nếu muốn)
+                  congSuat: '${totalDungLuong.toStringAsFixed(1)} kWh',
                   khoiLuong: '${vt.fieldValue('khoi_luong')} kg',
                   baoHanh: item.thoiGianBaoHanh > 0
                       ? TronGoiUtils.convertMonthToYearAndMonth(
@@ -329,10 +404,14 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
                   },
                 );
               }).toList(),
-              onChange: () => _openProductBottomSheet(
-                context,
-                categoryLabel: 'Pin lưu trữ',
-              ),
+              onChange: () {
+                if (_groups.batteries.isEmpty) return;
+                _openProductBottomSheet(
+                  context,
+                  nhomMa: 'PIN_LUU_TRU',
+                  indexInGroup: 0,
+                );
+              },
             ),
 
             const SizedBox(height: 12),
@@ -374,7 +453,7 @@ class _DanhMucThietBiVaVatTuState extends State<DanhMucThietBiVaVatTu>
               child: _apMai
                   ? const SizedBox.shrink()
                   : Padding(
-                      padding: EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.only(top: 4),
                       child: _GiaKhungSatFrame(
                         onGiaBanChanged: (value) {
                           setState(() => _giaBanKhungSat = value);
@@ -480,9 +559,9 @@ class _LabeledField extends StatelessWidget {
           child: TextFormField(
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: InputBorder.none,
-              hintText: hint,
+              hintText: '',
             ),
             onChanged: (value) {
               final numVal = num.tryParse(value) ?? 0;

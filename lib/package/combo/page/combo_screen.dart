@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer_animation/shimmer_animation.dart'; // <-- thêm
 import '../widgets/combo_card.dart';
 import './tron_goi_list.dart';
 import '../../model/tron_goi_models.dart';
@@ -21,14 +22,12 @@ class _ComboListScreenState extends State<ComboListScreen> {
     _futureCombos = _repo.getAllNhomTronGoi();
   }
 
-
-
   void _handleTap(NhomTronGoiDto combo) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ProductListScreen(
-          nhomTronGoiId: combo.id, 
-          comboName: combo.ten, 
+          nhomTronGoiId: combo.id,
+          comboName: combo.ten,
         ),
       ),
     );
@@ -66,7 +65,23 @@ class _ComboListScreenState extends State<ComboListScreen> {
                   future: _futureCombos,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      // Shimmer skeleton cho BrandCard
+                      return GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 191 / 126,
+                        ),
+                        itemCount: 6,
+                        itemBuilder: (context, index) {
+                          return Shimmer(
+                            child: _BrandCardShimmer(scale: scale),
+                          );
+                        },
+                      );
                     }
 
                     if (snapshot.hasError) {
@@ -101,11 +116,11 @@ class _ComboListScreenState extends State<ComboListScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 191 / 126,
-                          ),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 191 / 126,
+                      ),
                       itemCount: combos.length,
                       itemBuilder: (context, index) {
                         final combo = combos[index];
@@ -113,7 +128,6 @@ class _ComboListScreenState extends State<ComboListScreen> {
                         return GestureDetector(
                           onTap: () => _handleTap(combo),
                           child: BrandCard(
-                           
                             iconPath: 'assets/icons/file-validation.svg',
                             text: combo.ten, // lấy "ten" từ API
                           ),
@@ -126,6 +140,60 @@ class _ComboListScreenState extends State<ComboListScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shimmer skeleton cho BrandCard
+class _BrandCardShimmer extends StatelessWidget {
+  final double Function(double) scale;
+
+  const _BrandCardShimmer({required this.scale});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: scale(191),
+      height: scale(126),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6E6E6),
+        borderRadius: BorderRadius.circular(scale(20)),
+      ),
+      padding: EdgeInsets.all(scale(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon placeholder
+          Container(
+            width: scale(32),
+            height: scale(32),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD6D6D6),
+              borderRadius: BorderRadius.circular(scale(16)),
+            ),
+          ),
+          SizedBox(height: scale(12)),
+          // Text line 1
+          Container(
+            width: scale(120),
+            height: scale(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD6D6D6),
+              borderRadius: BorderRadius.circular(scale(6)),
+            ),
+          ),
+          SizedBox(height: scale(8)),
+          // Text line 2
+          Container(
+            width: scale(80),
+            height: scale(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD6D6D6),
+              borderRadius: BorderRadius.circular(scale(6)),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -32,6 +32,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   rename_app: ^1.6.5
   dio: ^5.9.0
+  shimmer_animation: ^2.2.2+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

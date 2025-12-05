@@ -3,15 +3,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../model/tron_goi_models.dart';
 import '../../model/extension.dart';
+
 class ProductDeviceCard extends StatelessWidget {
   final VatTuTronGoiDto item;
   final VoidCallback? onTap;
 
-  const ProductDeviceCard({
-    super.key,
-    required this.item,
-    this.onTap,
-  });
+  const ProductDeviceCard({super.key, required this.item, this.onTap});
 
   String _buildQuantityTag() {
     // Hiển thị dạng "x4 tấm" hoặc "x2 bộ" tùy theo đơn vị
@@ -27,8 +24,10 @@ class ProductDeviceCard extends StatelessWidget {
   String _buildWarrantyText() {
     if (!item.duocBaoHanh) return 'Không bảo hành';
     if (item.thoiGianBaoHanh <= 0) return 'Không bảo hành';
-    final String thoiGian_baoHanh = TronGoiUtils.convertMonthToYearAndMonth(item.thoiGianBaoHanh);
-    return  'Bảo hành $thoiGian_baoHanh';
+    final String thoiGianBaoHanhText = TronGoiUtils.convertMonthToYearAndMonth(
+      item.thoiGianBaoHanh,
+    );
+    return 'Bảo hành $thoiGianBaoHanhText';
   }
 
   String _formatPrice(double value) {
@@ -47,7 +46,7 @@ class ProductDeviceCard extends StatelessWidget {
   }
 
   String _getThuocTinh(VatTuDto vatTu, String key) {
-    // key phụ thuộc backend: ví dụ 'congSuat', 'congNghe'
+    // key phụ thuộc backend: ví dụ 'cong_suat', 'cong_nghe', 'dung_luong', 'khoi_luong'
     final tt = vatTu.duLieuRieng[key];
     if (tt == null || tt.giaTri == null) return 'Đang cập nhật';
     final value = tt.giaTri.toString();
@@ -55,6 +54,42 @@ class ProductDeviceCard extends StatelessWidget {
       return '$value ${tt.donVi}';
     }
     return value;
+  }
+
+  Widget _buildInfoRow(String label, String value, {int maxLines = 1}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'SF Pro',
+            fontWeight: FontWeight.w400,
+            fontSize: 14.sp,
+            color: const Color(0xFF4F4F4F),
+          ),
+        ),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              value,
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontFamily: 'SF Pro',
+                fontWeight: FontWeight.w600,
+                fontSize: 14.sp,
+                color: const Color(0xFF4F4F4F),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -77,6 +112,15 @@ class ProductDeviceCard extends StatelessWidget {
 
     final powerText = _getThuocTinh(vatTu, 'cong_suat');
     final techText = _getThuocTinh(vatTu, 'cong_nghe');
+
+    final isPinLuuTru = vatTu.nhomVatTu.ma == 'PIN_LUU_TRU';
+    final isBienTan = vatTu.nhomVatTu.ma == 'BIEN_TAN';
+
+    final rawDungLuong = vatTu.duLieuRieng['dung_luong']?.giaTri;
+    final dungLuongText = (rawDungLuong is num)
+        ? "${rawDungLuong.toStringAsFixed(1)} kWh"
+        : _getThuocTinh(vatTu, 'dung_luong');
+    final khoiLuongText = _getThuocTinh(vatTu, 'khoi_luong');
 
     return InkWell(
       borderRadius: BorderRadius.circular(28.r),
@@ -240,58 +284,29 @@ class ProductDeviceCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Công suất:',
-                        style: TextStyle(
-                          fontFamily: 'SF Pro',
-                          fontWeight: FontWeight.w400,
-                          fontSize: 14.sp,
-                          color: const Color(0xFF4F4F4F),
-                        ),
-                      ),
-                      Text(
-                        powerText,
-                        style: TextStyle(
-                          fontFamily: 'SF Pro',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14.sp,
-                          color: const Color(0xFF4F4F4F),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4.h),
-                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Công nghệ:',
-                        style: TextStyle(
-                          fontFamily: 'SF Pro',
-                          fontWeight: FontWeight.w400,
-                          fontSize: 14.sp,
-                          color: const Color(0xFF4F4F4F),
-                        ),
-                      ),
-                      Text(
-                          techText,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: true,
-                          style: TextStyle(
-                            fontFamily: 'SF Pro',
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
-                            color: const Color(0xFF4F4F4F),
-                      ),
-                      ),
-                    ],
-                  ),
-                
-                 SizedBox(height: 4.h),
+
+                  if (isPinLuuTru) ...[
+                    _buildInfoRow('Dung lượng:', dungLuongText),
+                    SizedBox(height: 4.h),
+                    _buildInfoRow('Khối lượng:', khoiLuongText),
+                    SizedBox(height: 4.h),
+                  ]
+                  // ---- BIẾN TẦN: công suất + khối lượng ----
+                  else if (isBienTan) ...[
+                    _buildInfoRow('Công suất:', powerText),
+                    SizedBox(height: 4.h),
+                    _buildInfoRow('Khối lượng:', khoiLuongText),
+                    SizedBox(height: 4.h),
+                  ]
+                  // ---- CÁC LOẠI KHÁC: công suất + công nghệ ----
+                  else ...[
+                    _buildInfoRow('Công suất:', powerText),
+                    SizedBox(height: 4.h),
+                    _buildInfoRow('Công nghệ:', techText, maxLines: 2),
+                    SizedBox(height: 4.h),
+                  ],
+
+                  // ---- SỐ LƯỢNG: giữ nguyên ----
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

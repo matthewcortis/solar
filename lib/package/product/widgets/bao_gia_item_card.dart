@@ -10,6 +10,7 @@ class DeviceHorizontalItemCard extends StatelessWidget {
   final String warrantyText;
   final String name;
   final num price;
+  final num quantity; // <-- THÊM SỐ LƯỢNG
 
   const DeviceHorizontalItemCard({
     super.key,
@@ -18,6 +19,7 @@ class DeviceHorizontalItemCard extends StatelessWidget {
     required this.warrantyText,
     required this.name,
     required this.price,
+    required this.quantity, // <-- REQUIRED
   });
 
   /// ========= FACTORY TRUYỀN TRỰC TIẾP VatTuTronGoiDto =========
@@ -28,7 +30,6 @@ class DeviceHorizontalItemCard extends StatelessWidget {
     final VatTuDto vatTu = vatTuTronGoi.vatTu;
 
     // ==== Ảnh sản phẩm ====
-    // ==== Ảnh sản phẩm ====
     String imagePath = 'assets/images/product.png';
     if (vatTu.anhVatTus.isNotEmpty) {
       final TepTinDto tep = vatTu.anhVatTus.first.tepTin;
@@ -37,14 +38,13 @@ class DeviceHorizontalItemCard extends StatelessWidget {
       }
     }
 
-    // ==== Tag theo nhóm vật tư ====
+    // ==== Tag theo nhóm vật tư (ở đây đang dùng thương hiệu) ====
     final String tag = vatTu.thuongHieu.ten;
 
     // ==== Bảo hành ====
     final String warrantyText = vatTuTronGoi.thoiGianBaoHanh > 0
-        ? 'Bảo hành ${ TronGoiUtils.convertMonthToYearAndMonth(vatTuTronGoi.thoiGianBaoHanh)}'
+        ? 'Bảo hành ${TronGoiUtils.convertMonthToYearAndMonth(vatTuTronGoi.thoiGianBaoHanh)}'
         : 'Không bảo hành';
-     
 
     // ==== Giá ====
     num gia = vatTuTronGoi.gia;
@@ -64,6 +64,9 @@ class DeviceHorizontalItemCard extends StatelessWidget {
       gia = giaInfo.giaBan ?? giaInfo.giaNhap ?? 0;
     }
 
+    // ==== SỐ LƯỢNG ====
+    final num soLuong = vatTuTronGoi.soLuong;
+
     return DeviceHorizontalItemCard(
       key: key,
       image: imagePath,
@@ -71,6 +74,7 @@ class DeviceHorizontalItemCard extends StatelessWidget {
       warrantyText: warrantyText,
       name: vatTu.ten,
       price: gia,
+      quantity: soLuong, // <-- TRUYỀN SỐ LƯỢNG VÀO
     );
   }
 
@@ -78,6 +82,14 @@ class DeviceHorizontalItemCard extends StatelessWidget {
   String _formatCurrency(num value) {
     final formatter = NumberFormat('#,###', 'vi_VN');
     return '${formatter.format(value)}đ';
+  }
+
+  /// format số lượng (bỏ .0 nếu là số nguyên)
+  String _formatQuantity(num value) {
+    if (value % 1 == 0) {
+      return value.toInt().toString();
+    }
+    return value.toString();
   }
 
   Widget _buildImageWidget() {
@@ -133,21 +145,6 @@ class DeviceHorizontalItemCard extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(child: _buildImageWidget()),
-                  // Positioned.fill(
-                  //   child: Container(
-                  //     decoration: const BoxDecoration(
-                  //       gradient: RadialGradient(
-                  //         center: Alignment.center,
-                  //         radius: 0.75,
-                  //         colors: [
-                  //           Colors.transparent,
-                  //           Color.fromRGBO(211, 211, 211, 0.2),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-
                   // TAG
                   Positioned(
                     left: scale(8),
@@ -237,15 +234,32 @@ class DeviceHorizontalItemCard extends StatelessWidget {
 
                 SizedBox(height: scale(4)),
 
-                // GIÁ SP
-                Text(
-                  _formatCurrency(price),
-                  style: TextStyle(
-                    fontFamily: 'SF Pro',
-                    fontWeight: FontWeight.w600,
-                    fontSize: scale(16),
-                    color: const Color(0xFFEE4037),
-                  ),
+                // GIÁ + SỐ LƯỢNG
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Giá
+                    Text(
+                      _formatCurrency(price),
+                      style: TextStyle(
+                        fontFamily: 'SF Pro',
+                        fontWeight: FontWeight.w600,
+                        fontSize: scale(16),
+                        color: const Color(0xFFEE4037),
+                      ),
+                    ),
+
+                    // Số lượng thiết bị
+                    Text(
+                      'x ${_formatQuantity(quantity)}',
+                      style: TextStyle(
+                        fontFamily: 'SF Pro',
+                        fontWeight: FontWeight.w500,
+                        fontSize: scale(13),
+                        color: const Color(0xFF4F4F4F),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

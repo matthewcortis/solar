@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class BaoGiaItemCard extends StatelessWidget {
   final int index;
   final String title;
   final String qty;
+  final String? iconUrl; // cho nullable
 
   const BaoGiaItemCard({
     super.key,
     required this.index,
     required this.title,
     required this.qty,
+    this.iconUrl, // không required nữa
   });
 
   @override
@@ -52,23 +53,31 @@ class BaoGiaItemCard extends StatelessWidget {
               ),
             ),
 
-            SizedBox(width: scale(8)), 
+            SizedBox(width: scale(8)),
 
             SizedBox(
-              width: scale(80), 
+              width: scale(60),
               child: Center(
-                child: SvgPicture.asset(
-                  'assets/icons/icon-app.svg', 
-                  height: scale(18),
-                  fit: BoxFit.contain,
-                ),
+                child: (iconUrl != null && iconUrl!.isNotEmpty)
+                    ? (iconUrl!.startsWith('http')
+                          ? Image.network(
+                              iconUrl!,
+                              height: scale(18),
+                              fit: BoxFit.contain,
+                            )
+                          : Image.asset(
+                              iconUrl!,
+                              height: scale(18),
+                              fit: BoxFit.contain,
+                            ))
+                    : const SizedBox.shrink(),
               ),
             ),
 
             SizedBox(width: scale(8)),
 
             SizedBox(
-              width: scale(60), 
+              width: scale(60),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Text(

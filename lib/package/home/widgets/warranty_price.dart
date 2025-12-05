@@ -1,10 +1,11 @@
-
 import 'package:flutter/material.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
+
 class ContractValueCard extends StatefulWidget {
   final String deliveryDate;
   final String totalValue;
   final VoidCallback? onView;
-
+ 
   const ContractValueCard({
     super.key,
     required this.deliveryDate,
@@ -45,6 +46,7 @@ class _ContractValueCardState extends State<ContractValueCard> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Bên trái: ngày bàn giao + label
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -83,6 +85,7 @@ class _ContractValueCardState extends State<ContractValueCard> {
               ],
             ),
 
+            // Bên phải: số tiền + icon ẩn/hiện
             Row(
               children: [
                 GestureDetector(
@@ -98,9 +101,7 @@ class _ContractValueCardState extends State<ContractValueCard> {
                     ),
                   ),
                 ),
-
                 SizedBox(width: scale(6)),
-
                 GestureDetector(
                   onTap: () => setState(() => isHidden = !isHidden),
                   child: Icon(
@@ -114,6 +115,89 @@ class _ContractValueCardState extends State<ContractValueCard> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shimmer loading cho ContractValueCard – dùng trong FutureBuilder khi đang load
+class ContractValueCardShimmer extends StatelessWidget {
+  const ContractValueCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    double scale(double v) => v * width / 430;
+
+    return Center(
+      child: Shimmer(
+        duration: const Duration(milliseconds: 1500),
+        interval: const Duration(milliseconds: 300),
+        color: Colors.grey.shade300,
+        colorOpacity: 0.4,
+        enabled: true,
+        child: Container(
+          width: scale(398),
+          height: scale(93),
+          padding: EdgeInsets.all(scale(16)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFF3F3F3), width: 1),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Bên trái: pill ngày + label skeleton
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: scale(170),
+                    height: scale(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                  ),
+                  SizedBox(height: scale(8)),
+                  Container(
+                    width: scale(150),
+                    height: scale(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Bên phải: số tiền + icon skeleton
+              Row(
+                children: [
+                  Container(
+                    width: scale(120),
+                    height: scale(26),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  SizedBox(width: scale(6)),
+                  Container(
+                    width: scale(22),
+                    height: scale(22),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

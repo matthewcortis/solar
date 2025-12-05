@@ -72,6 +72,8 @@ class TronGoiUtils {
     return '${kw.toStringAsFixed(1)} kW';
   }
 
+
+
   /// Tính diện tích tấm pin:
   /// kich_thuoc = "2278 x 1134 x 30" mm → chỉ lấy dài * rộng
   /// đổi sang m²: (dài * rộng) / 1e6
@@ -186,33 +188,6 @@ VatTuGroupResult groupVatTuByNhom(
   return VatTuGroupResult(title: title, items: list, warrantyText: warranty);
 }
 
-extension VatTuImageExt on VatTuDto {
-  String? get mainImageUrl {
-    if (anhVatTus.isEmpty) return null;
-
-    AnhVatTuDto? mainImage;
-
-    // Tìm ảnh có anhChinh = true
-    try {
-      mainImage = anhVatTus.firstWhere(
-        (e) => e.anhChinh == true && e.tepTin.duongDan.isNotEmpty,
-      );
-    } catch (_) {
-      mainImage = null;
-    }
-
-    if (mainImage != null) {
-      return mainImage.tepTin.duongDan;
-    }
-
-    final AnhVatTuDto first = anhVatTus.first;
-    if (first.tepTin.duongDan.isNotEmpty) {
-      return first.tepTin.duongDan;
-    }
-
-    return null;
-  }
-}
 extension VatTuGiaX on VatTuDto {
   double? get giaBanDefault {
     if (thongTinGias.isEmpty) return null;
@@ -234,13 +209,18 @@ extension VatTuGiaX on VatTuDto {
   }
 }
 
-
 extension VatTuTronGoiCopy on VatTuTronGoiDto {
-  VatTuTronGoiDto copyWith({double? soLuong, double? gia, double? gm}) {
+  VatTuTronGoiDto copyWith({
+    VatTuDto? vatTu,
+    String? moTa,
+    double? soLuong,
+    double? gia,
+    double? gm,
+  }) {
     return VatTuTronGoiDto(
       id: id,
-      vatTu: vatTu,
-      moTa: moTa,
+      vatTu: vatTu ?? this.vatTu,
+      moTa: moTa ?? this.moTa,
       soLuong: soLuong ?? this.soLuong,
       gia: gia ?? this.gia,
       gm: gm ?? this.gm,
@@ -252,3 +232,85 @@ extension VatTuTronGoiCopy on VatTuTronGoiDto {
     );
   }
 }
+
+extension VatTuViewExt on VatTuDto {
+  /// Ảnh chính: ưu tiên ảnh có `anhChinh = true`, fallback ảnh đầu tiên,
+  /// cuối cùng fallback chuỗi rỗng (UI sẽ dùng asset mặc định).
+  String get mainImageUrl {
+    AnhVatTuDto? main;
+    if (anhVatTus.isNotEmpty) {
+      main = anhVatTus.firstWhere(
+        (e) => e.anhChinh,
+        orElse: () => anhVatTus.first,
+      );
+    }
+    return main?.tepTin.duongDan ?? '';
+  }
+
+  /// Tag nhỏ ở góc ảnh – ở đây hiển thị thương hiệu.
+  String get quantityTag {
+    if (thuongHieu.tenQuocTe.isNotEmpty) {
+      return thuongHieu.tenQuocTe;
+    }
+    if (thuongHieu.ten.isNotEmpty) {
+      return thuongHieu.ten;
+    }
+    // fallback đơn vị nếu không có brand
+    return donVi.isNotEmpty ? 'Đơn vị: $donVi' : '';
+  }
+
+  /// Tiêu đề hiển thị trên card
+  String get title => ten;
+
+  /// Giá bán: lấy giá bán mới nhất từ dsThongTinGia.
+  /// Ưu tiên phần tử cuối + dsGia cuối có giaBan > 0.
+  num get price {
+    // duyệt từ mới nhất về cũ nhất
+    for (final tt in thongTinGias.reversed) {
+      for (final info in tt.dsGia.reversed) {
+        if (info.giaBan != null && info.giaBan! > 0) {
+          return info.giaBan!;
+        }
+      }
+    }
+    return 0;
+  }
+
+  /// Thời gian bảo hành (tháng) lấy từ dữ liệu riêng (nếu backend có key này).
+  int get warrantyMonths {
+    final ThuocTinh? tt = duLieuRieng['thoiGianBaoHanh'];
+    if (tt == null) return 0;
+    final v = tt.giaTri;
+    if (v == null) return 0;
+    if (v is num) return v.toInt();
+    final parsed = int.tryParse(v.toString());
+    return parsed ?? 0;
+  }
+
+  /// Text bảo hành hiển thị cho UI, dạng “5 năm”, “1 năm 6 tháng”, “12 tháng”, ...
+  String get warrantyLabel {
+    final months = warrantyMonths;
+    if (months <= 0) return 'theo chính sách hãng';
+
+    final years = months ~/ 12;
+    final remain = months % 12;
+
+    if (years > 0 && remain > 0) {
+      return '$years năm $remain tháng';
+    }
+    if (years > 0) {
+      return '$years năm';
+    }
+    return '$remain tháng';
+  }
+}
+extension NumberFormatExtension on num {
+  String formatKwpWithUnit() {
+    final result = this / 1000;
+    if (result % 1 == 0) {
+      return '${result.toInt()} kWp';
+    }
+    return '${result.toStringAsFixed(1)} kWp';
+  }
+}
+

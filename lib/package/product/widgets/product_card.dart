@@ -1,18 +1,24 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
+
 import '../../../routes.dart';
 import '../../utils/app_utils.dart';
 import '../../model/tron_goi_models.dart';
 
-/// Card sản phẩm (hiển thị ở trang Home) va ̣combo
+/// Card sản phẩm (hiển thị ở trang Home) và combo
 class ProductItemCard extends StatelessWidget {
   final TronGoiDto combo;
 
   const ProductItemCard({super.key, required this.combo});
+
   @override
   Widget build(BuildContext context) {
     final imageUrl = combo.tepTin.duongDan;
+
     return GestureDetector(
       onTap: () {
         print("ID combo: ${combo.id}");
@@ -22,7 +28,6 @@ class ProductItemCard extends StatelessWidget {
       },
       child: Container(
         width: 280.w,
-
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -53,35 +58,27 @@ class ProductItemCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20.r),
-                  child: ( imageUrl.isNotEmpty)
+                  child: imageUrl.isNotEmpty
                       ? Image.network(
                           imageUrl,
                           width: 260.w,
                           height: 260.w,
                           fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            'assets/images/product.png',
+                            width: 260.w,
+                            height: 260.w,
+                            fit: BoxFit.cover,
+                          ),
                         )
-                      : Container(
+                      : Image.asset(
+                          'assets/images/product.png',
                           width: 260.w,
                           height: 260.w,
-                          color: const Color(0xFFE6E6E6),
-                          child: const Icon(Icons.image_not_supported),
+                          fit: BoxFit.cover,
                         ),
                 ),
-                // Container(
-                //   width: 167.w,
-                //   height: 157.w,
-                //   decoration: BoxDecoration(
-                //     borderRadius: BorderRadius.circular(20.r),
-                //     gradient: const RadialGradient(
-                //       center: Alignment.center,
-                //       radius: 0.75,
-                //       colors: [
-                //         Colors.transparent,
-                //         Color.fromRGBO(0, 0, 0, 0.2),
-                //       ],
-                //     ),
-                //   ),
-                // ),
+
                 Positioned(
                   top: 12.h,
                   left: 12.w,
@@ -116,16 +113,19 @@ class ProductItemCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    combo.ten,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'SFProDisplay',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16.sp,
-                      height: 20 / 16,
-                      color: const Color(0xFF4F4F4F),
+                  SizedBox(
+                    height: 40.h, // ~ 2 dòng với font 16.sp
+                    child: Text(
+                      combo.ten,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'SFProDisplay',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16.sp,
+                        height: 20 / 16,
+                        color: const Color(0xFF4F4F4F),
+                      ),
                     ),
                   ),
                   SizedBox(height: 8.h),
@@ -144,41 +144,51 @@ class ProductItemCard extends StatelessWidget {
                   SizedBox(height: 8.h),
                   Container(
                     width: 260.w,
-                    height: 35.h,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 4.h,
-                    ),
+                    height: 36.h,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3F3F3),
+                      color: const Color(0xFFDAFEE8).withOpacity(0.6),
                       borderRadius: BorderRadius.circular(100.r),
                     ),
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/new-releases.svg',
-                          width: 24.w,
-                          height: 24.w,
-                        ),
-                        SizedBox(width: 4.w),
-
-                        Expanded(
-                          child: Text(
-                            combo.congSuatHeThong != null
-                                ? '${(combo.congSuatHeThong! / 1000).toStringAsFixed(1)} W/p'
-                                : '—',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontFamily: 'SF Pro',
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14.sp,
-                              height: 16 / 14,
-                              color: const Color(0xFF4F4F4F),
-                            ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100.r),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: 10,
+                          sigmaY: 10,
+                        ), // glass effect
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(
+                                'assets/icons/new-releases.svg',
+                                width: 22.w,
+                                height: 22.w,
+                              ),
+                              SizedBox(width: 4.w),
+                              Expanded(
+                                child: Text(
+                                  combo.congSuatHeThong != null
+                                      ? '${(combo.congSuatHeThong! / 1000).toStringAsFixed(1)} W/p'
+                                      : '—',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontFamily: 'SF Pro',
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14.sp,
+                                    height: 16 / 14,
+                                    color: const Color.fromARGB(255, 3, 90, 19),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -248,6 +258,107 @@ class ProductItemCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shimmer skeleton cho ProductItemCard – dùng trong ComboShimmerList
+class ProductItemCardShimmer extends StatelessWidget {
+  const ProductItemCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      duration: const Duration(milliseconds: 1500),
+      interval: const Duration(milliseconds: 300),
+      color: Colors.grey.shade300,
+      colorOpacity: 0.4,
+      enabled: true,
+      child: Container(
+        width: 280.w,
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28.r),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x26D1D1D1),
+              blurRadius: 34,
+              offset: Offset(0, 15),
+            ),
+            BoxShadow(
+              color: Color(0x21D1D1D1),
+              blurRadius: 61,
+              offset: Offset(0, 61),
+            ),
+            BoxShadow(
+              color: Color(0x14D1D1D1),
+              blurRadius: 82,
+              offset: Offset(0, 137),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // IMAGE skeleton
+            Container(
+              width: 260.w,
+              height: 260.w,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE6E6E6),
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            ),
+            SizedBox(height: 12.h),
+            // TEXT skeleton
+            SizedBox(
+              width: 260.w,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 220.w,
+                    height: 18.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6E6E6),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Container(
+                    width: 160.w,
+                    height: 20.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6E6E6),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Container(
+                    width: 260.w,
+                    height: 36.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6E6E6),
+                      borderRadius: BorderRadius.circular(100.r),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+            // BUTTON skeleton
+            Container(
+              width: 260.w,
+              height: 45.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE6E6E6),
+                borderRadius: BorderRadius.circular(12.r),
               ),
             ),
           ],

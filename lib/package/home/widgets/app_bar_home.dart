@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:solarmaxapp/routes.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../ads/quang_cao_service.dart';
+
 
 class SolarHeaderFullCard extends StatefulWidget {
   const SolarHeaderFullCard({
@@ -32,25 +35,46 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
 
   bool get _isGuest => widget.roleCode == null || widget.roleCode == 'guest';
 
-  // ====== BANNER AUTO SLIDE ======
-  final List<String> _bannerImages = const [
-    'assets/images/banner.png',
-    'assets/images/banner2.png',
-    'assets/images/banner3.png',
-  ];
+  final QuangCaoBannerService _bannerService =
+      QuangCaoBannerService.instance;
 
+  List<String> _bannerUrls = [];
+  bool _loadingBanner = true;
   int _currentBannerIndex = 0;
   Timer? _bannerTimer;
 
   @override
   void initState() {
     super.initState();
+    _loadTrangChuBanners();
+
     _bannerTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (!mounted || _bannerImages.isEmpty) return;
+      if (!mounted || _bannerUrls.isEmpty) return;
       setState(() {
-        _currentBannerIndex = (_currentBannerIndex + 1) % _bannerImages.length;
+        _currentBannerIndex =
+            (_currentBannerIndex + 1) % _bannerUrls.length;
       });
     });
+  }
+
+  Future<void> _loadTrangChuBanners() async {
+    try {
+      final urls = await _bannerService.getTrangChuBannerUrls();
+
+      if (!mounted) return;
+
+      setState(() {
+        _bannerUrls = urls;
+        _loadingBanner = false;
+        _currentBannerIndex = 0;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loadingBanner = false;
+        _bannerUrls = [];
+      });
+    }
   }
 
   @override
@@ -59,13 +83,26 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
     super.dispose();
   }
 
+  Future<void> _openWebsite() async {
+    final uri = Uri.parse("https://slmsolar.vn");
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _callPhone() async {
+    final uri = Uri.parse("tel:0969663387");
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
   Widget _buildActionByRole(
     BuildContext context,
     String? role,
     double Function(double) scale,
   ) {
     if (role == 'admin' || role == 'sale') {
-      // Admin: icon Báo giá
       return GestureDetector(
         onTap: () {
           Navigator.of(
@@ -92,7 +129,6 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
       );
     }
 
-    // Các role khác: icon Notification
     return Container(
       width: scale(46),
       height: scale(46),
@@ -108,7 +144,6 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
   Widget build(BuildContext context) {
     double scale(double v) => _scale(context, v);
 
-    // KHAI BÁO style ở đây để dùng bên dưới
     final nameTextStyle = TextStyle(
       fontFamily: 'SF Pro',
       fontWeight: FontWeight.w600,
@@ -129,6 +164,33 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
       color: const Color(0xFF4F4F4F),
     );
 
+    // Chọn background tùy theo trạng thái
+    Widget background;
+    if (_loadingBanner) {
+      background = Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF222831), Color(0xFF393E46)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      );
+    } else if (_bannerUrls.isEmpty) {
+      // Không có dữ liệu từ API -> fallback asset
+      background = Image.asset(
+        'assets/images/banner.png',
+        fit: BoxFit.cover,
+      );
+    } else {
+      final url = _bannerUrls[_currentBannerIndex];
+      background = Image.network(
+        url,
+        key: ValueKey(url),
+        fit: BoxFit.cover,
+      );
+    }
+
     return Container(
       width: MediaQuery.of(context).size.width,
       height: scale(430),
@@ -144,15 +206,11 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
         children: [
           // ========= BACKGROUND BANNER FADE =========
           AnimatedSwitcher(
-            duration: const Duration(seconds: 2), // fade 2s
+            duration: const Duration(seconds: 2),
             transitionBuilder: (child, animation) {
               return FadeTransition(opacity: animation, child: child);
             },
-            child: Image.asset(
-              _bannerImages[_currentBannerIndex],
-              key: ValueKey(_bannerImages[_currentBannerIndex]),
-              fit: BoxFit.cover,
-            ),
+            child: background,
           ),
 
           // --- Header Avatar Glass ---
@@ -180,7 +238,6 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                     children: [
                       Row(
                         children: [
-                          // Ảnh avatar truyền từ ngoài
                           Container(
                             width: scale(55),
                             height: scale(55),
@@ -197,12 +254,15 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // TÊN / WELCOME (có animation nếu guest)
                               if (_isGuest)
                                 _AnimatedGuestName(style: nameTextStyle)
                               else
-                                Text(widget.userName, style: nameTextStyle),
-
+                                Text(
+                                  widget.userName,
+                                  style: nameTextStyle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               if (_isGuest)
                                 Text('Xin chào!', style: roleTextStyle)
                               else
@@ -211,7 +271,6 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                           ),
                         ],
                       ),
-                      // Nút action theo roleCode (admin -> Báo giá, còn lại -> notification)
                       _buildActionByRole(context, widget.roleCode, scale),
                     ],
                   ),
@@ -227,39 +286,41 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Pill "Hy - Brid"
-                Container(
-                  width: scale(84),
-                  height: scale(28),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(1000),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(1000),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: scale(12),
-                          vertical: scale(4),
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(1000),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1,
+                GestureDetector(
+                  onTap: () => _openWebsite(),
+                  child: Container(
+                    width: scale(99),
+                    height: scale(34),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(1000),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(1000),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: scale(12),
+                            vertical: scale(4),
                           ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Hy - Brid',
-                          style: TextStyle(
-                            fontFamily: 'SF Pro',
-                            fontWeight: FontWeight.w500,
-                            fontSize: scale(11),
-                            height: 1.4,
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(1000),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 1,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'slmsolar.vn',
+                            style: TextStyle(
+                              fontFamily: 'SF Pro',
+                              fontWeight: FontWeight.w500,
+                              fontSize: scale(11),
+                              height: 1.4,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -268,7 +329,7 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                 ),
                 SizedBox(height: scale(6)),
                 Text(
-                  'Bán hàng thật dễ dàng',
+                  'Liên hệ ngay',
                   style: TextStyle(
                     fontFamily: 'SF Pro',
                     fontWeight: FontWeight.w600,
@@ -281,8 +342,8 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                 ),
                 SizedBox(height: scale(10)),
                 Container(
-                  width: scale(148),
-                  height: scale(40),
+                  width: scale(180),
+                  height: scale(48),
                   decoration: BoxDecoration(
                     color: const Color(0xFFED1C24),
                     borderRadius: BorderRadius.circular(12),
@@ -302,22 +363,11 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                         blurRadius: 82,
                         offset: Offset(0, 137),
                       ),
-                      BoxShadow(
-                        color: Color(0x0FD1D1D1),
-                        blurRadius: 98,
-                        offset: Offset(0, 244),
-                      ),
-                      BoxShadow(
-                        color: Color(0x00D1D1D1),
-                        blurRadius: 107,
-                        offset: Offset(0, 382),
-                      ),
                     ],
                   ),
                   child: ElevatedButton.icon(
                     onPressed: () {
                       if (_isGuest) {
-                        // Guest: sang màn Welcome (đăng nhập)
                         Navigator.of(
                           context,
                           rootNavigator: true,
@@ -326,18 +376,15 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                           (route) => false,
                         );
                       } else {
-                        // Navigator.of(
-                        //   context,
-                        //   rootNavigator: true,
-                        // ).pushNamed(AppRoutes.detailNewsScreen);
+                        _callPhone();
                       }
                     },
                     label: Text(
-                      _isGuest ? 'Đăng nhập' : 'Tham gia ngay',
+                      _isGuest ? 'Đăng nhập' : '0969 663 387',
                       style: TextStyle(
                         fontFamily: 'SFProDisplay',
                         fontWeight: FontWeight.w700,
-                        fontSize: scale(14),
+                        fontSize: scale(16),
                         color: Colors.white,
                       ),
                     ),
@@ -345,8 +392,8 @@ class _SolarHeaderFullCardState extends State<SolarHeaderFullCard> {
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
                       padding: EdgeInsets.symmetric(
-                        horizontal: scale(18),
-                        vertical: scale(8),
+                        horizontal: scale(20),
+                        vertical: scale(10),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

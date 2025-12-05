@@ -1,8 +1,7 @@
 // lib/package/device/widgets/warranty_widget.dart
 import 'package:flutter/material.dart';
 
-import '../../model/hop_dong_bao_hanh_model.dart';
-import '../../model/warranty_item_model.dart';
+import '../../model/tron_goi_models.dart';
 import '../repository/rarranty_repo.dart';
 import 'warranty_item_card.dart';
 import '../../utils/app_utils.dart';
@@ -19,7 +18,7 @@ class WarrantyWidget extends StatefulWidget {
 
 class _WarrantyWidgetState extends State<WarrantyWidget> {
   final _repo = WarrantyRepository();
-  late Future<HopDongBaoHanh?> _futureHopDong;
+  late Future<HopDongBaoHanhDto?> _futureHopDong;
 
   @override
   void initState() {
@@ -41,57 +40,21 @@ class _WarrantyWidgetState extends State<WarrantyWidget> {
     }
   }
 
-  List<WarrantyItemModel> _buildItems(HopDongBaoHanh hopDong) {
-    final now = DateTime.now();
-
+  /// Lọc & sort danh sách vật tư bảo hành chính
+  List<VatTuHopDongBaoHanhDto> _buildItems(HopDongBaoHanhDto hopDong) {
     final filtered = hopDong.vatTuHopDongs.where((e) {
-      final nhom = e.vatTu?.nhomVatTu;
-      return nhom != null && nhom.vatTuChinh == true;
+      // vật tư chính dựa vào nhomVatTu.vatTuChinh
+      final nhom = e.vatTu.nhomVatTu;
+      return nhom.vatTuChinh == true;
     }).toList();
 
     filtered.sort((a, b) {
-      final maA = a.vatTu?.nhomVatTu?.ma;
-      final maB = b.vatTu?.nhomVatTu?.ma;
+      final maA = a.nhomMa.isNotEmpty ? a.nhomMa : a.vatTu.nhomVatTu.ma;
+      final maB = b.nhomMa.isNotEmpty ? b.nhomMa : b.vatTu.nhomVatTu.ma;
       return _groupPriority(maA).compareTo(_groupPriority(maB));
     });
 
-    return filtered.map((e) {
-      final vatTu = e.vatTu;
-      final nhom = vatTu?.nhomVatTu;
-
-      final start = e.baoHanhBatDau;
-      final end = e.baoHanhKetThuc;
-
-      double progress = 0;
-      String statusText = '';
-
-      if (start != null && end != null) {
-        final total = end.difference(start).inDays;
-        final passed = now.difference(start).inDays;
-        if (total > 0) {
-          progress = (passed / total).clamp(0, 1).toDouble();
-        }
-
-        statusText = now.isAfter(end) ? 'Hết hạn' : 'Còn hạn';
-      }
-
-      final anhList = vatTu?.anhVatTus ?? [];
-      final image = anhList.isNotEmpty
-          ? (anhList.first.tepTin?.duongDan ?? '')
-          : 'assets/images/product.png';
-
-      return WarrantyItemModel(
-        productName: vatTu?.ten ?? '',
-        image: image,
-        activeDate: start,
-        endDate: end,
-        duration: e.thoiGianBaoHanh ?? 0,
-        progress: progress,
-        statusText: statusText,
-        groupCode: nhom?.ma,
-        groupName: nhom?.ten,
-      );
-    }).toList();
+    return filtered;
   }
 
   @override
@@ -99,7 +62,7 @@ class _WarrantyWidgetState extends State<WarrantyWidget> {
     final width = MediaQuery.of(context).size.width;
     double scale(double v) => v * width / 430;
 
-    return FutureBuilder<HopDongBaoHanh?>(
+    return FutureBuilder<HopDongBaoHanhDto?>(
       future: _futureHopDong,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -116,12 +79,14 @@ class _WarrantyWidgetState extends State<WarrantyWidget> {
         }
 
         final items = _buildItems(hopDong);
+        final now = DateTime.now();
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: scale(0)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Giá trị hợp đồng + ngày tạo (gần tương đương ngày bàn giao)
               ContractValueCard(
                 deliveryDate: hopDong.taoLuc != null
                     ? AppUtils.date(hopDong.taoLuc!.toIso8601String())
@@ -130,9 +95,10 @@ class _WarrantyWidgetState extends State<WarrantyWidget> {
               ),
 
               SizedBox(height: scale(20)),
-              // ten hợp đồng
+
+              // Tên hợp đồng
               Text(
-                hopDong.ten,
+                hopDong.tenHopDong,
                 style: TextStyle(
                   fontFamily: 'SFProDisplay',
                   fontWeight: FontWeight.w600,
@@ -164,29 +130,44 @@ class _WarrantyWidgetState extends State<WarrantyWidget> {
                   separatorBuilder: (_, __) => SizedBox(height: scale(12)),
                   itemBuilder: (context, index) {
                     final item = items[index];
+                    final vatTu = item.vatTu;
 
-                    // DateTime? -> String dd/MM/yyyy qua AppUtils
-                    final activeDateStr = item.activeDate != null
-                        ? AppUtils.date(item.activeDate!.toIso8601String())
+                    final start = item.baoHanhBatDau;
+                    final end = item.baoHanhKetThuc;
+
+                    String statusText = '';
+                    if (start != null && end != null) {
+                      statusText = now.isAfter(end) ? 'Hết hạn' : 'Còn hạn';
+                    }
+
+                    // ảnh
+                    final anhList = vatTu.anhVatTus;
+                    final String image = anhList.isNotEmpty
+                        ? (anhList.first.tepTin.duongDan)
+                        : 'assets/images/product.png';
+
+                    // DateTime? -> String dd/MM/yyyy
+                    final activeDateStr = start != null
+                        ? AppUtils.date(start.toIso8601String())
                         : '';
 
-                    final endDateStr = item.endDate != null
-                        ? AppUtils.date(item.endDate!.toIso8601String())
+                    final endDateStr = end != null
+                        ? AppUtils.date(end.toIso8601String())
                         : '';
 
                     // int tháng -> "X năm Y tháng"
+                    final durationMonths = item.thoiGianBaoHanhEffective;
                     final durationStr = AppUtils.convertMonthToYearAndMonth(
-                      item.duration.toDouble(),
+                      durationMonths.toDouble(),
                     );
 
                     return WarrantyItemCard(
-                      image: item.image,
-                      statusText: item.statusText,
-                      productName: item.productName,
-                      activeDate: activeDateStr, // String
-                      duration: durationStr, // String
-                      endDate: endDateStr, // String
-                 
+                      image: image,
+                      statusText: statusText,
+                      productName: vatTu.ten,
+                      activeDate: activeDateStr,
+                      duration: durationStr,
+                      endDate: endDateStr,
                     );
                   },
                 ),
@@ -196,6 +177,4 @@ class _WarrantyWidgetState extends State<WarrantyWidget> {
       },
     );
   }
-
-   
 }

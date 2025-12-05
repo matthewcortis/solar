@@ -3,7 +3,7 @@ import '../../model/hop_dong_model.dart';
 import '../../controllers/login/auth_storage.dart';
 
 class HopDongRepository {
-  Future<List<HopDongModel>> getHopDongCuaUserDangNhap() async {
+  Future<List<HopDongModel>> getHopDongGioiThieu() async {
     final userIdStr = await AuthStorage.getUserId();
     if (userIdStr == null) return [];
 
@@ -16,14 +16,40 @@ class HopDongRepository {
           "fieldName": "nguoiGioiThieu.id",
           "operation": "EQUALS",
           "value": userId,
-          "logicType": "AND"
-        }
+          "logicType": "AND",
+        },
       ],
       "sorts": [
-        {"fieldName": "id", "direction": "ASC"}
+        {"fieldName": "id", "direction": "ASC"},
       ],
       "page": 0,
-      "size": 100
+      "size": 100,
+    };
+
+    final res = await ApiService.post("/basic-api/hop-dong/filter", body);
+    final content = res["data"]["content"] as List<dynamic>;
+    return content.map((e) => HopDongModel.fromJson(e)).toList();
+  }
+}
+
+class HopDongCuaToiRepository {
+  Future<List<HopDongModel>> getHopDongCuaUserDangNhap() async {
+    final sdt = await AuthStorage.getSdt();
+      if (sdt == null) return [];
+    final body = {
+      "filters": [
+        {
+          "fieldName": "khachHang.sdt",
+          "operation": "EQUALS",
+          "value": sdt,
+          "logicType": "AND",
+        },
+      ],
+      "sorts": [
+        {"fieldName": "id", "direction": "ASC"},
+      ],
+      "page": 0,
+      "size": 100,
     };
 
     final res = await ApiService.post("/basic-api/hop-dong/filter", body);

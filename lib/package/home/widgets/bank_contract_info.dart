@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
+
 import '../page/customer_screen.dart';
 import '../repository/khach_hang_repo.dart';
 
@@ -13,6 +15,7 @@ class BankContractCard extends StatefulWidget {
   final String totalContractValue; // Tổng giá trị hợp đồng: "12.650.000"
   final String customerCount; // Số khách hàng: "12"
   final String totalCommission; // Tổng hoa hồng: "100.000.000đ"
+  final int hopDongId;
 
   // Callback khi bấm vào "Danh sách khách hàng" (nếu muốn custom)
   final VoidCallback? onTapCustomerList;
@@ -25,6 +28,7 @@ class BankContractCard extends StatefulWidget {
     required this.totalContractValue,
     required this.customerCount,
     required this.totalCommission,
+    required this.hopDongId,
     this.onTapCustomerList,
   });
 
@@ -37,6 +41,7 @@ class _BankContractCardState extends State<BankContractCard>
   bool _isExpanded = false;
   bool isHidden = false;
   final repo = KhachHangRepository();
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -241,14 +246,22 @@ class _BankContractCardState extends State<BankContractCard>
                     ),
                     Row(
                       children: [
-                        Text(
-                          isHidden ? "******" : widget.totalContractValue,
-                          style: TextStyle(
-                            fontFamily: 'SF Pro',
-                            fontWeight: FontWeight.w600,
-                            fontSize: scale(22),
-                            height: 1.0,
-                            color: Colors.red,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pushNamed(
+                              '/warranty',
+                              arguments: widget.hopDongId,
+                            );
+                          },
+                          child: Text(
+                            isHidden ? "******" : widget.totalContractValue,
+                            style: TextStyle(
+                              fontFamily: 'SF Pro',
+                              fontWeight: FontWeight.w600,
+                              fontSize: scale(22),
+                              height: 1.0,
+                              color: Colors.red,
+                            ),
                           ),
                         ),
                         SizedBox(width: scale(6)),
@@ -282,7 +295,7 @@ class _BankContractCardState extends State<BankContractCard>
   Widget _buildExpandedCard(Function(double) scale) {
     return Container(
       width: scale(398),
-      height: scale(99),
+      height: scale(109),
       margin: EdgeInsets.only(top: scale(8)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -293,7 +306,6 @@ class _BankContractCardState extends State<BankContractCard>
               if (widget.onTapCustomerList != null) {
                 widget.onTapCustomerList!();
               } else {
-                // Default: sang màn danh sách khách hàng như cũ
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -309,7 +321,7 @@ class _BankContractCardState extends State<BankContractCard>
             child: _buildSmallInfoCard(
               scale,
               title: "Danh sách khách hàng",
-              value: widget.customerCount, // dynamic
+              value: widget.customerCount,
             ),
           ),
 
@@ -317,7 +329,7 @@ class _BankContractCardState extends State<BankContractCard>
           _buildSmallInfoCard(
             scale,
             title: "Tổng số hoa hồng",
-            value: widget.totalCommission, // dynamic
+            value: widget.totalCommission,
           ),
         ],
       ),
@@ -331,7 +343,7 @@ class _BankContractCardState extends State<BankContractCard>
   }) {
     return Container(
       width: scale(191),
-      height: scale(99),
+      height: scale(109),
       padding: EdgeInsets.all(scale(16)),
       decoration: BoxDecoration(
         color: const Color(0xFFF3F3F3),
@@ -389,13 +401,138 @@ class _BankContractCardState extends State<BankContractCard>
             style: TextStyle(
               fontFamily: 'SF Pro',
               fontWeight: FontWeight.w600,
-              fontSize: scale(22),
+              fontSize: scale(20),
               height: 1.0,
               letterSpacing: 0,
               color: const Color(0xFFEE4037),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shimmer loading cho BankContractCard – dùng khi đang chờ FutureBuilder
+class BankContractCardShimmer extends StatelessWidget {
+  const BankContractCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    double scale(double v) => v * width / 430;
+
+    return Center(
+      child: Shimmer(
+        duration: const Duration(milliseconds: 1500),
+        interval: const Duration(milliseconds: 300),
+        color: Colors.grey.shade300,
+        colorOpacity: 0.4,
+        enabled: true,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(scale(20)),
+          child: Container(
+            width: scale(398),
+            padding: EdgeInsets.all(scale(16)),
+            decoration: BoxDecoration(
+              color: const Color(0x33E6E6E6),
+              borderRadius: BorderRadius.circular(scale(20)),
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            child: Column(
+              children: [
+                // Hàng "Tài khoản ngân hàng"
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: scale(140),
+                      height: scale(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          width: scale(120),
+                          height: scale(18),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        SizedBox(height: scale(4)),
+                        Container(
+                          width: scale(100),
+                          height: scale(18),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: scale(12)),
+
+                // Hàng ngày bàn giao + tổng giá trị
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: scale(174),
+                          height: scale(22),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                        ),
+                        SizedBox(height: scale(6)),
+                        Container(
+                          width: scale(150),
+                          height: scale(18),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: scale(120),
+                          height: scale(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        SizedBox(width: scale(6)),
+                        Container(
+                          width: scale(20),
+                          height: scale(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
